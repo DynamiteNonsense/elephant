@@ -1,0 +1,1772 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Шесть слепых слонов · курс по книге Стива Андреаса</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='30' fill='%2311141b'/%3E%3Ccircle cx='25' cy='32' r='13' fill='none' stroke='%2337e0c0' stroke-width='4'/%3E%3Crect x='28' y='19' width='22' height='26' rx='5' fill='none' stroke='%23a98bff' stroke-width='4' stroke-dasharray='5 3'/%3E%3Ccircle cx='33' cy='32' r='3.5' fill='%23d4f45a'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0a0c11; --bg2:#0e1117; --surface:#12151c; --plate:#171b25; --plate2:#1d2230;
+  --line:#252b3a; --line2:#323a4e;
+  --text:#eceef4; --text2:#b8bdcb; --muted:#828aa0;
+  --c1:#37e0c0; --c2:#ff8a4c; --c3:#a98bff; --c4:#ff5c9a; --c5:#d4f45a; --c6:#4cb2ff;
+  --acc:var(--c1);
+  --r:14px; --r2:20px;
+  --side:288px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Inter',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--text);font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased;min-height:100vh}
+body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
+  background:
+   radial-gradient(600px 400px at 85% -5%, rgba(169,139,255,.13), transparent 70%),
+   radial-gradient(500px 380px at 30% 110%, rgba(55,224,192,.08), transparent 70%);}
+a{color:inherit}
+button{font-family:inherit;cursor:pointer}
+::selection{background:rgba(212,244,90,.3)}
+:focus-visible{outline:2px solid var(--c5);outline-offset:2px;border-radius:6px}
+
+/* ===== layout ===== */
+.app{position:relative;z-index:1;display:flex;min-height:100vh}
+.side{position:fixed;left:0;top:0;bottom:0;width:var(--side);background:rgba(14,17,23,.92);backdrop-filter:blur(12px);border-right:1px solid var(--line);display:flex;flex-direction:column;z-index:30;transition:transform .3s ease}
+.side-head{padding:22px 22px 16px;display:flex;align-items:center;gap:12px;text-decoration:none}
+.logo{width:40px;height:40px;flex:none}
+.brand b{display:block;font-size:15px;font-weight:700;letter-spacing:-.01em}
+.brand span{font-size:12px;color:var(--muted)}
+.progress-box{margin:0 22px 14px;padding:12px 14px;background:var(--plate);border-radius:12px;border:1px solid var(--line)}
+.progress-box .row{display:flex;justify-content:space-between;font-size:12px;color:var(--text2);margin-bottom:8px}
+.progress-box .row b{color:var(--text)}
+.bar{height:6px;border-radius:6px;background:var(--line);overflow:hidden}
+.bar i{display:block;height:100%;width:0;border-radius:6px;background:linear-gradient(90deg,var(--c1),var(--c6) 40%,var(--c3) 70%,var(--c4));transition:width .6s cubic-bezier(.2,.8,.2,1)}
+.nav{flex:1;overflow-y:auto;padding:4px 12px 24px;scrollbar-width:thin;scrollbar-color:var(--line2) transparent}
+.nav-group{margin-top:14px}
+.nav-label{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);padding:6px 10px;display:flex;align-items:center;gap:8px;font-weight:600}
+.nav-label i{width:8px;height:8px;border-radius:50%}
+.nav a{display:flex;align-items:center;gap:10px;padding:7px 10px;border-radius:9px;font-size:13.5px;color:var(--text2);text-decoration:none;transition:background .15s,color .15s;line-height:1.35}
+.nav a:hover{background:var(--plate);color:var(--text)}
+.nav a.active{background:var(--plate2);color:var(--text)}
+.nav a .n{width:22px;font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums;flex:none}
+.nav a .dot{width:7px;height:7px;border-radius:50%;border:1.5px solid var(--line2);margin-left:auto;flex:none}
+.nav a.done .dot{background:var(--c5);border-color:var(--c5)}
+.nav a.tool{font-weight:500;color:var(--text)}
+.nav a.tool svg{width:18px;height:18px;flex:none}
+
+.main{margin-left:var(--side);flex:1;min-width:0}
+.topbar{display:none}
+.wrap{max-width:1200px;padding:48px 56px 96px}
+
+/* ===== typography ===== */
+h1{font-size:48px;line-height:1.08;letter-spacing:-.03em;font-weight:800}
+h2{font-size:28px;line-height:1.2;letter-spacing:-.02em;font-weight:700;margin-bottom:14px}
+h3{font-size:19px;line-height:1.3;font-weight:650;letter-spacing:-.01em;margin-bottom:8px}
+p{color:var(--text2);margin-bottom:12px}
+p b, li b{color:var(--text);font-weight:600}
+.lead{font-size:19px;line-height:1.55;color:var(--text2);max-width:680px}
+.eyebrow{display:inline-flex;align-items:center;gap:8px;font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--acc);margin-bottom:14px}
+.eyebrow i{width:18px;height:2px;background:var(--acc);border-radius:2px}
+ul.clean{list-style:none}
+.content ul:not(.clean){padding-left:0;list-style:none;margin:6px 0 14px}
+.content ul:not(.clean) li{position:relative;padding-left:20px;color:var(--text2);margin-bottom:6px}
+.content ul:not(.clean) li::before{content:"";position:absolute;left:4px;top:.62em;width:6px;height:6px;border-radius:2px;background:var(--acc)}
+q,.q{color:var(--text);font-style:normal}
+q::before{content:"«"}q::after{content:"»"}
+mark{background:rgba(212,244,90,.14);color:var(--c5);padding:0 4px;border-radius:4px}
+
+/* ===== components ===== */
+.btn{display:inline-flex;align-items:center;gap:8px;border:none;border-radius:11px;padding:11px 18px;font-size:14.5px;font-weight:600;background:var(--acc);color:#0a0c11;text-decoration:none;transition:transform .15s,box-shadow .2s,filter .2s}
+.btn:hover{transform:translateY(-1px);box-shadow:0 8px 24px -8px var(--acc);filter:brightness(1.05)}
+.btn.ghost{background:var(--plate);color:var(--text);border:1px solid var(--line2)}
+.btn.ghost:hover{box-shadow:none;border-color:var(--muted)}
+.btn.sm{padding:7px 12px;font-size:13px;border-radius:9px}
+.btn:disabled{opacity:.4;pointer-events:none}
+.chip{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;padding:4px 10px;border-radius:20px;background:var(--plate2);color:var(--text2);border:1px solid var(--line)}
+.chip i{width:7px;height:7px;border-radius:50%;background:var(--acc)}
+
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r2);padding:24px}
+.plate{background:var(--plate);border-radius:var(--r);padding:16px 18px;border:1px solid var(--line)}
+.key{position:relative;background:linear-gradient(180deg,rgba(255,255,255,.025),transparent),var(--plate);border:1px solid var(--line);border-left:3px solid var(--acc);border-radius:12px;padding:16px 18px;margin:18px 0}
+.key .t{font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--acc);margin-bottom:6px}
+.key p:last-child{margin-bottom:0}
+.example{background:var(--bg2);border:1px dashed var(--line2);border-radius:12px;padding:14px 16px;margin:14px 0}
+.example .t{font-size:12px;color:var(--muted);font-weight:600;margin-bottom:4px}
+.example p:last-child{margin-bottom:0}
+
+/* home */
+.hero{display:grid;grid-template-columns:1.2fr .8fr;gap:48px;align-items:center;margin-bottom:56px}
+.hero h1 span{background:linear-gradient(95deg,var(--c1),var(--c6) 35%,var(--c3) 65%,var(--c4));-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero .actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:26px}
+.parable{position:relative;padding:26px;border-radius:var(--r2);background:var(--surface);border:1px solid var(--line);overflow:hidden}
+.parable p{font-size:15px}
+.parable .who{font-size:12px;color:var(--muted);margin-top:10px}
+.elephants{display:flex;gap:8px;margin-bottom:18px}
+.elephants span{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font-size:12px;font-weight:700;color:#0a0c11;animation:bob 3s ease-in-out infinite}
+.elephants span:nth-child(2){animation-delay:.2s}.elephants span:nth-child(3){animation-delay:.4s}.elephants span:nth-child(4){animation-delay:.6s}.elephants span:nth-child(5){animation-delay:.8s}.elephants span:nth-child(6){animation-delay:1s}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+
+.section{margin-bottom:56px}
+.section-head{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;margin-bottom:20px;flex-wrap:wrap}
+.section-head p{margin:0;max-width:560px}
+.map{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.map .card{position:relative;overflow:hidden}
+.map .card .num{font-size:12px;color:var(--muted);font-weight:600;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.map .card .num i{width:10px;height:10px;border-radius:3px}
+.map .card p{font-size:14.5px}
+.map .card::after{content:"";position:absolute;right:-40px;top:-40px;width:120px;height:120px;border-radius:50%;background:var(--pc);opacity:.08;filter:blur(4px)}
+.lessons{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}
+.lesson-tile{display:flex;flex-direction:column;gap:6px;text-decoration:none;padding:16px;border-radius:14px;background:var(--surface);border:1px solid var(--line);transition:border-color .2s,transform .2s,background .2s;min-height:112px}
+.lesson-tile:hover{border-color:var(--pc);transform:translateY(-2px);background:var(--plate)}
+.lesson-tile .top{display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--muted);font-weight:600}
+.lesson-tile .top i{width:8px;height:8px;border-radius:50%;background:var(--pc)}
+.lesson-tile b{font-size:15px;line-height:1.3;font-weight:600}
+.lesson-tile small{font-size:13px;color:var(--muted);line-height:1.4}
+.lesson-tile.done .top::after{content:"пройдено";color:var(--c5);font-size:11px}
+.howto{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.howto .plate b{display:block;margin-bottom:4px;font-size:15px}
+.howto .plate span{font-size:13.5px;color:var(--text2);line-height:1.45;display:block}
+.howto .plate .ic{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;margin-bottom:12px;font-weight:800;color:#0a0c11}
+
+/* lesson */
+.lesson-grid{display:grid;grid-template-columns:minmax(0,1fr) 280px;gap:48px;align-items:start}
+.content{max-width:740px}
+.lesson-head{margin-bottom:28px}
+.lesson-head h1{font-size:40px;margin-bottom:14px}
+.meta{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+.block{margin:36px 0}
+.block h2{font-size:23px;display:flex;gap:12px;align-items:baseline}
+.block h2 .bn{font-size:13px;color:var(--acc);font-weight:700;min-width:22px}
+.figure{margin:20px 0;background:var(--bg2);border:1px solid var(--line);border-radius:var(--r2);padding:20px;overflow:hidden}
+.figure svg{width:100%;height:auto;display:block}
+.figure figcaption{font-size:13px;color:var(--muted);margin-top:12px;line-height:1.45}
+.aside{position:sticky;top:28px;display:flex;flex-direction:column;gap:14px}
+.aside .plate h4{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:10px}
+.aside ol{padding-left:18px;color:var(--text2);font-size:14px}
+.aside ol li{margin-bottom:8px;line-height:1.45}
+.aside ol li::marker{color:var(--acc);font-weight:700}
+.toc a{display:block;font-size:13.5px;color:var(--text2);text-decoration:none;padding:4px 0 4px 12px;border-left:2px solid var(--line);line-height:1.4}
+.toc a:hover{color:var(--text);border-color:var(--acc)}
+.lesson-foot{display:flex;justify-content:space-between;gap:12px;margin-top:40px;padding-top:24px;border-top:1px solid var(--line);flex-wrap:wrap}
+.pager{display:flex;flex-direction:column;gap:2px;text-decoration:none;padding:14px 16px;border-radius:12px;background:var(--surface);border:1px solid var(--line);min-width:220px;max-width:48%;flex:1}
+.pager:hover{border-color:var(--acc)}
+.pager small{font-size:12px;color:var(--muted)}
+.pager b{font-size:14.5px;font-weight:600}
+.pager.next{text-align:right}
+
+/* quiz */
+.quiz{margin:36px 0}
+.qitem{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:20px;margin-bottom:12px}
+.qitem .qq{font-weight:600;color:var(--text);margin-bottom:12px;font-size:15.5px}
+.opts{display:grid;gap:8px}
+.opt{text-align:left;background:var(--plate);border:1px solid var(--line);color:var(--text2);border-radius:11px;padding:11px 14px;font-size:14.5px;line-height:1.4;transition:border-color .15s,background .15s}
+.opt:hover{border-color:var(--line2);color:var(--text)}
+.opt.ok{border-color:var(--c1);background:rgba(55,224,192,.08);color:var(--text)}
+.opt.bad{border-color:var(--c4);background:rgba(255,92,154,.07)}
+.qexp{display:none;margin-top:12px;font-size:14px;color:var(--text2);padding:12px 14px;border-radius:10px;background:var(--bg2)}
+.qexp.show{display:block;animation:fade .3s}
+.qexp b{color:var(--c1)}
+.qexp.wrong b{color:var(--c4)}
+@keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+.score{display:flex;align-items:center;gap:14px;padding:16px 18px;border-radius:14px;background:var(--plate);border:1px solid var(--line);margin-top:6px}
+.score .ring{width:46px;height:46px;flex:none}
+
+/* practice */
+.ex-head{margin-bottom:24px}
+.ex-head h1{font-size:36px;margin-bottom:12px}
+.ex-layout{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:40px;align-items:start}
+.steps-nav{display:flex;gap:6px;margin-bottom:18px;flex-wrap:wrap}
+.steps-nav button{width:34px;height:34px;border-radius:10px;border:1px solid var(--line2);background:var(--plate);color:var(--text2);font-weight:600;font-size:13px;transition:all .15s}
+.steps-nav button.cur{background:var(--acc);color:#0a0c11;border-color:var(--acc)}
+.steps-nav button.filled:not(.cur){border-color:var(--acc);color:var(--text)}
+.step{background:var(--surface);border:1px solid var(--line);border-radius:var(--r2);padding:26px;animation:fade .3s}
+.step .sn{font-size:12px;font-weight:700;color:var(--acc);letter-spacing:.06em;text-transform:uppercase;margin-bottom:8px}
+.step h2{font-size:24px;margin-bottom:12px}
+.step .pause{display:inline-flex;gap:6px;align-items:center;font-size:12.5px;color:var(--c5);background:rgba(212,244,90,.08);border-radius:8px;padding:4px 10px;margin:4px 0 12px}
+textarea,input[type=text],select{width:100%;font-family:inherit;font-size:15px;color:var(--text);background:var(--bg2);border:1px solid var(--line2);border-radius:12px;padding:12px 14px;line-height:1.5;resize:vertical;transition:border-color .15s,box-shadow .15s}
+textarea{min-height:110px}
+textarea:focus,input:focus,select:focus{outline:none;border-color:var(--acc);box-shadow:0 0 0 3px color-mix(in srgb,var(--acc) 18%,transparent)}
+::placeholder{color:#5c647a}
+label.fl{display:block;font-size:13px;font-weight:600;color:var(--text2);margin:14px 0 6px}
+.step-actions{display:flex;justify-content:space-between;gap:10px;margin-top:20px;flex-wrap:wrap}
+.saved{font-size:12px;color:var(--muted);display:flex;align-items:center;gap:6px}
+.saved i{width:6px;height:6px;border-radius:50%;background:var(--c5)}
+.timer{display:flex;align-items:center;gap:12px}
+.timer .tv{font-size:30px;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.timer-presets{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+.done-box{text-align:left;padding:30px;border-radius:var(--r2);background:var(--surface);border:1px solid var(--acc)}
+
+/* trainer */
+.drill{background:var(--surface);border:1px solid var(--line);border-radius:var(--r2);padding:24px;margin-bottom:18px}
+.drill-card{font-size:20px;font-weight:600;line-height:1.4;padding:26px;border-radius:16px;background:var(--plate);border:1px solid var(--line);margin:14px 0;min-height:110px;display:flex;align-items:center}
+.drill-btns{display:flex;gap:8px;flex-wrap:wrap}
+.drill-btns .btn{flex:1;justify-content:center;min-width:140px}
+.drill-fb{margin-top:12px;font-size:14.5px;min-height:24px}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:20px}
+.tabs button{border:1px solid var(--line2);background:var(--plate);color:var(--text2);padding:9px 14px;border-radius:11px;font-size:14px;font-weight:500}
+.tabs button.on{background:var(--text);color:var(--bg);border-color:var(--text)}
+.order-list{display:grid;gap:8px;margin-top:12px}
+.order-list button{text-align:left;padding:12px 14px;border-radius:11px;border:1px solid var(--line2);background:var(--plate);color:var(--text);font-size:15px;display:flex;gap:10px;align-items:center}
+.order-list button .pos{width:24px;height:24px;border-radius:7px;display:grid;place-items:center;background:var(--line);font-size:12px;font-weight:700;color:var(--text2)}
+.order-list button.picked .pos{background:var(--acc);color:#0a0c11}
+.mango{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0}
+.mango button{font-size:22px;font-weight:600;padding:10px 16px;border-radius:12px;border:1px solid var(--line2);background:var(--plate);color:var(--text)}
+.mango button.on{background:var(--acc);color:#0a0c11;border-color:var(--acc);text-transform:uppercase}
+
+/* circles exercise */
+.circles{position:relative;width:100%;max-width:520px;aspect-ratio:1;margin:10px auto}
+.circles .c{position:absolute;width:30%;aspect-ratio:1;border-radius:50%;display:grid;place-items:center;text-align:center;padding:10px;font-size:13px;line-height:1.3;font-weight:500;border:2px solid var(--cc);background:color-mix(in srgb,var(--cc) 12%,var(--bg2));color:var(--text);transform:translate(-50%,-50%);transition:all .5s cubic-bezier(.2,.8,.2,1);overflow:hidden;word-break:break-word}
+.circles .c.center{width:32%;border-style:dashed;font-weight:700;font-size:14px}
+
+/* glossary & journal */
+.gloss{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px}
+.gloss .plate b{display:block;margin-bottom:4px;color:var(--text)}
+.gloss .plate span{font-size:14px;color:var(--text2);line-height:1.5;display:block}
+.gloss .plate a{font-size:12px;color:var(--acc);text-decoration:none;margin-top:8px;display:inline-block}
+.journal-entry{margin-bottom:14px}
+.journal-entry h3{display:flex;justify-content:space-between;gap:10px;align-items:center}
+.journal-entry .a{font-size:14px;color:var(--text2);white-space:pre-wrap;margin:6px 0 10px;padding-left:12px;border-left:2px solid var(--line2)}
+.journal-entry .a b{display:block;color:var(--muted);font-size:12px;font-weight:600}
+.empty{color:var(--muted);padding:30px;text-align:center;border:1px dashed var(--line2);border-radius:16px}
+
+.ex-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px}
+.ex-tile{display:flex;flex-direction:column;gap:8px;padding:18px;border-radius:16px;background:var(--surface);border:1px solid var(--line);text-decoration:none;transition:border-color .2s,transform .2s}
+.ex-tile:hover{border-color:var(--pc);transform:translateY(-2px)}
+.ex-tile b{font-size:16px;font-weight:600;line-height:1.3}
+.ex-tile small{color:var(--muted);font-size:13.5px;line-height:1.45}
+.ex-tile .tags{display:flex;gap:6px;flex-wrap:wrap}
+.ex-tile .tags span{font-size:11.5px;color:var(--text2);background:var(--plate2);padding:3px 8px;border-radius:6px}
+
+.toast{position:fixed;bottom:24px;left:50%;transform:translate(-50%,20px);background:var(--text);color:var(--bg);padding:10px 18px;border-radius:12px;font-size:14px;font-weight:600;opacity:0;transition:all .3s;z-index:99;pointer-events:none}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+.view{animation:fade .35s}
+.overlay{display:none}
+
+/* svg helpers */
+.svg-t{font-family:Inter,sans-serif;fill:var(--text2);font-size:13px}
+.svg-h{font-family:Inter,sans-serif;fill:var(--text);font-size:14px;font-weight:600}
+.svg-s{font-family:Inter,sans-serif;fill:var(--muted);font-size:11.5px}
+
+/* responsive */
+@media (max-width:1180px){
+  .lesson-grid,.ex-layout{grid-template-columns:1fr}
+  .aside{position:static;display:grid;grid-template-columns:1fr 1fr}
+  .toc-plate{display:none}
+  .hero{grid-template-columns:1fr}
+  .howto{grid-template-columns:1fr 1fr}
+}
+@media (max-width:900px){
+  .side{transform:translateX(-100%);box-shadow:20px 0 60px rgba(0,0,0,.5)}
+  .side.open{transform:none}
+  .overlay.show{display:block;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:25}
+  .main{margin-left:0}
+  .topbar{display:flex;position:sticky;top:0;z-index:20;align-items:center;justify-content:space-between;padding:12px 18px;background:rgba(10,12,17,.88);backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
+  .topbar .brand-s{display:flex;align-items:center;gap:10px;font-weight:700;font-size:15px;text-decoration:none}
+  .topbar .brand-s svg{width:30px;height:30px}
+  .menu-btn{background:var(--plate);border:1px solid var(--line2);color:var(--text);border-radius:10px;width:40px;height:40px;display:grid;place-items:center}
+  .wrap{padding:32px 24px 80px}
+  .map{grid-template-columns:1fr}
+  h1{font-size:36px}
+  .lesson-head h1{font-size:32px}
+}
+@media (max-width:560px){
+  .wrap{padding:24px 16px 72px}
+  h1{font-size:30px}
+  .lesson-head h1,.ex-head h1{font-size:27px}
+  .lead{font-size:17px}
+  .howto,.aside{grid-template-columns:1fr}
+  .card,.step,.drill{padding:18px}
+  .pager{max-width:100%;min-width:0}
+  .drill-card{font-size:17px;padding:18px}
+  .circles .c{font-size:10.5px;padding:4px}
+  .figure{padding:12px}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="side" id="side">
+    <a class="side-head" href="#/">
+      <svg class="logo" viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="30" fill="#161a24" stroke="#252b3a"/><circle cx="25" cy="32" r="13" fill="none" stroke="#37e0c0" stroke-width="3.5"/><rect x="28" y="19" width="22" height="26" rx="5" fill="none" stroke="#a98bff" stroke-width="3.5" stroke-dasharray="5 3"/><circle cx="33" cy="32" r="3.5" fill="#d4f45a"/></svg>
+      <div class="brand"><b>Шесть слепых слонов</b><span>курс по книге Стива Андреаса</span></div>
+    </a>
+    <div class="progress-box"><div class="row"><span>Прогресс</span><b id="progTxt">0 из 24</b></div><div class="bar"><i id="progBar"></i></div></div>
+    <nav class="nav" id="nav"></nav>
+  </aside>
+  <div class="overlay" id="overlay"></div>
+  <main class="main">
+    <div class="topbar">
+      <a class="brand-s" href="#/"><svg viewBox="0 0 64 64"><circle cx="32" cy="32" r="30" fill="#161a24"/><circle cx="25" cy="32" r="13" fill="none" stroke="#37e0c0" stroke-width="3.5"/><rect x="28" y="19" width="22" height="26" rx="5" fill="none" stroke="#a98bff" stroke-width="3.5" stroke-dasharray="5 3"/><circle cx="33" cy="32" r="3.5" fill="#d4f45a"/></svg>Слепые слоны</a>
+      <button class="menu-btn" id="menuBtn" aria-label="Меню"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M4 12h16M4 17h10"/></svg></button>
+    </div>
+    <div class="wrap" id="view"></div>
+  </main>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+/* ================= DATA: PARTS ================= */
+const PARTS = [
+  {id:1, name:"Фундамент", color:"var(--c1)", hex:"#37e0c0", desc:"Два кирпичика, из которых собрано всё мышление: диапазон и категория. Плюс прототипы, критерии и логические уровни."},
+  {id:2, name:"Как строится смысл", color:"var(--c2)", hex:"#ff8a4c", desc:"Как диапазон и категория влияют друг на друга, откуда берутся ценности, значимость и рефрейминг."},
+  {id:3, name:"Паттерны общения", color:"var(--c3)", hex:"#a98bff", desc:"Второй том: подтекст, отрицание, суждения, парадоксы, двойные связки, метафоры и прощение."}
+];
+
+/* ================= DATA: LESSONS ================= */
+const LESSONS = [
+/* ---------- 1 ---------- */
+{id:"scope", part:1, title:"Диапазон во времени и пространстве", short:"Какой кусок события попадает в кадр",
+lead:"Любое событие мы видим кусочком. Сколько времени и пространства попадает в этот кусочек, Андреас называет диапазоном. С этого слова начинается вся книга.",
+blocks:[
+{h:"Что такое диапазон", html:`
+<p>Диапазон: часть сенсорного опыта, то, что можно увидеть, услышать или почувствовать телом. Он бывает в настоящем, в воспоминании и в прогнозе на будущее.</p>
+<p>Жизнь идёт непрерывно, и из этого потока мы вырезаем отрезки: <q>утро</q>, <q>разговор на кухне</q>, <q>вся прошлая зима</q>. Отрезок может быть в несколько секунд или в несколько лет. Так же с пространством: <q>эта чашка</q>, <q>моя комната</q>, <q>весь город</q>.</p>
+<div class="key"><div class="t">Запомни</div><p>Диапазон всегда можно показать пальцем или поставить на таймлайн. Если на вопрос «где и когда это было?» есть ответ, ты имеешь дело с диапазоном.</p></div>`},
+{h:"Три отношения между диапазонами", fig:"scopeRelations", html:`
+<p>Когда в голове два отрезка опыта, между ними возможны всего три отношения:</p>
+<ul>
+<li><b>Вложенный.</b> Один диапазон целиком внутри другого. Минута внутри часа, кухня внутри квартиры. Это отношение «часть и целое».</li>
+<li><b>Раздельные.</b> Общих частей нет. Вторник и пятница, твоя квартира и квартира соседа.</li>
+<li><b>Пересекающиеся.</b> Есть общая часть. Твой отпуск и отпуск коллеги совпали на три дня.</li>
+</ul>`},
+{h:"Почему люди спорят о разном", html:`
+<p>Двое обсуждают <q>вчерашний вечер</q>. Один думает про ссору в 23:00. Другой держит в голове весь вечер: ужин, прогулку, фильм и короткую ссору в конце. Каждый прав внутри своего отрезка, поэтому договориться они не могут.</p>
+<div class="example"><div class="t">Простой вопрос, который снимает половину конфликтов</div><p><q>Подожди, о каком отрезке ты говоришь? С какого момента и до какого?</q></p></div>
+<p>Когда оба уточнили границы, становится видно, что они спорили о разных событиях. После этого уже можно обсуждать, как по-разному каждый о них думает.</p>`},
+{h:"Узкий и широкий кадр", fig:"zoom", html:`
+<p>Узкий диапазон помогает сосредоточиться. Хирург видит операционное поле, вратарь видит мяч. Когда нужно решить задачу здесь и сейчас, сужение собирает все силы в одной точке.</p>
+<p>У сужения есть обратная сторона: из кадра вылетает информация, без которой решения не найти. Это туннельное зрение. Маркеры такого сужения в речи: <mark>только</mark>, <mark>лишь</mark>, <mark>просто</mark>.</p>
+<div class="example"><div class="t">Пример</div><p><q>Он только и делает, что критикует.</q> В кадр попали эпизоды критики. Все случаи, когда этот человек помогал или хвалил, остались за рамкой.</p></div>`},
+{h:"Экологическая проверка", html:`
+<p>Перед тем как закрепить любое изменение, Андреас предлагает расширить кадр: посмотреть, как новая реакция скажется дома, на работе, в отношениях, через месяц и через год. Если внутри появляется сопротивление или тревога, это сигнал. Его стоит выслушать и учесть, прежде чем идти дальше.</p>`}
+],
+keys:["Диапазон: кусок опыта во времени и пространстве.","Между двумя диапазонами три отношения: вложенный, раздельные, пересекающиеся.","В споре сначала сверь границы отрезков.","«Только» и «лишь» сужают кадр.","Перед изменением сделай экологическую проверку."],
+quiz:[
+{q:"«Вчерашняя ссора» и «весь вчерашний вечер». Какое между ними отношение?", o:["Вложенный диапазон: ссора внутри вечера","Раздельные диапазоны","Пересекающиеся диапазоны"], a:0, e:"Ссора целиком помещается во вчерашний вечер. Это отношение части и целого."},
+{q:"Что делает фраза «Ты только и делаешь, что споришь»?", o:["Расширяет диапазон до всей истории отношений","Сужает диапазон и выбрасывает все эпизоды без споров","Переводит разговор на более общую категорию"], a:1, e:"Слово «только» оставляет в кадре один тип эпизодов. Остальное исчезает из поля зрения."},
+{q:"Отпуск с 1 по 14 июля и командировка с 10 по 20 июля:", o:["Вложенные","Раздельные","Пересекающиеся"], a:2, e:"У них есть общая часть: с 10 по 14 июля."},
+{q:"Зачем нужна экологическая проверка?", o:["Чтобы быстрее закончить упражнение","Чтобы увидеть, как изменение скажется на других сферах жизни, до того как его закрепить","Чтобы убедить себя, что изменение правильное"], a:1, e:"Проверка расширяет диапазон во времени и пространстве и показывает возможные побочные эффекты."}
+],
+practice:["scope-script"]},
+
+/* ---------- 2 ---------- */
+{id:"category", part:1, title:"Категория", short:"Как разный опыт собирается в одну группу",
+lead:"Когда ты говоришь «собака», ты уже собрал сотни отдельных встреч с разными собаками в одну группу. Эта группа называется категорией.",
+blocks:[
+{h:"Как рождается категория", fig:"induction", html:`
+<p>Мы замечаем, чем разные случаи похожи, и объединяем их. Этот процесс называется <b>индукцией</b> или обобщением. Обратный процесс, <b>различение</b>, убирает из группы то, что слишком сильно отличается.</p>
+<div class="example"><div class="t">Как это видно у детей</div><p>Малыш сначала зовёт «собачкой» любое четвероногое: кошку, корову, лошадь. Потом он замечает различия и выделяет кошек в отдельную группу. Работают обобщение и различение.</p></div>`},
+{h:"Базовый уровень", html:`
+<p>Слова вроде <q>стул</q>, <q>собака</q>, <q>яблоко</q> относятся к категориям базового уровня. Это самый удобный для мозга уровень: легко представить картинку, легко назвать, легко показать ребёнку. Слова <q>мебель</q> или <q>животное</q> уже абстрактнее, у них нет одной общей картинки.</p>`},
+{h:"Критерии бывают явными и скрытыми", html:`
+<p>Чтобы что-то попало в категорию, нужен критерий: признак, по которому мы решаем, «наше» это или нет. Критерий может быть осознанным или неосознанным, чётким или «туманным». Часто его видно только по набору примеров: смотришь, что их объединяет, и догадываешься.</p>
+<p>Членство в категории задаётся тремя способами: перечнем примеров, явными критериями или правилом, по которому проверяют новый случай.</p>`},
+{h:"Любая категория дискретна", fig:"discrete", html:`
+<p>Реальный опыт аналоговый. Цвет, рост, громкость меняются плавно. Категория устроена иначе: опыт или входит в неё, или не входит. Третьего нет.</p>
+<p>Поэтому на границе категорий всегда есть спорные случаи. Где кончается «тёплый» и начинается «горячий»? Каждый ставит порог в своём месте.</p>`},
+{h:"Категория решает, как мы реагируем", html:`
+<p>Партнёр молча сидит вечером. Если отнести это к категории <q>обиделся на меня</q>, появится тревога. Если к категории <q>устал после работы</q> или <q>зачитался</q>, реакция будет спокойной. Событие одно и то же, меняется только полка, на которую мы его кладём.</p>
+<div class="key"><div class="t">Главная мысль</div><p>Мы реагируем на категорию, в которую положили событие. Сменилась категория, сменилась и реакция.</p></div>`}
+],
+keys:["Категория: группа примеров, похожих по какому-то критерию.","Её создаёт обобщение, уточняет различение.","Опыт аналоговый, категория дискретна: «да» или «нет».","Реакция зависит от того, к какой категории отнесено событие."],
+quiz:[
+{q:"Ребёнок перестаёт называть кошку собачкой. Какой процесс сработал?", o:["Индукция (обобщение)","Различение","Расширение диапазона"], a:1, e:"Различение исключает из категории то, что сильно отличается от остальных примеров."},
+{q:"Почему любая категория дискретна?", o:["Потому что примеры в ней одинаковые","Потому что опыт либо относится к ней, либо нет","Потому что у неё всегда один критерий"], a:1, e:"Сами примеры отличаются плавно, а решение о членстве всегда бинарное."},
+{q:"Какое слово относится к базовому уровню?", o:["Мебель","Стул","Офисный стул на колёсиках"], a:1, e:"«Стул» легко представить одной картинкой. «Мебель» выше, «офисный стул» уже подкатегория."}
+],
+practice:["category-script"]},
+
+/* ---------- 3 ---------- */
+{id:"prototype", part:1, title:"Прототип", short:"Один пример, который подменяет всю категорию",
+lead:"Чтобы быстро понять слово, мозг берёт один пример и подставляет его вместо всей категории. Такой пример называется прототипом. Он даёт категории смысл и одновременно его искажает.",
+blocks:[
+{h:"Зачем нужен прототип", html:`
+<p>Можно было бы перебирать в голове все примеры категории. Это долго. Поэтому мозг держит под рукой одну внутреннюю картинку и опирается на неё. Скажи себе <q>птица</q> и посмотри, что всплыло. У большинства людей это кто-то маленький и летающий, вроде воробья или синицы.</p>`},
+{h:"Шесть видов прототипов", html:`
+<ul>
+<li><b>Типичный пример.</b> Воробей для «птицы».</li>
+<li><b>Средний пример.</b> Средний рост, средняя зарплата.</li>
+<li><b>Выдающийся пример.</b> Яркий случай, который запомнился. Авиакатастрофа из новостей для слова «перелёт».</li>
+<li><b>Идеал.</b> Идеальный партнёр, идеальное тело. В жизни его не бывает.</li>
+<li><b>Образец.</b> Эталон, по которому сверяют. Эталон метра, образцовый отчёт.</li>
+<li><b>Стереотип.</b> Упрощённый образ группы людей.</li>
+</ul>`},
+{h:"Категория устроена как мишень", fig:"radial", html:`
+<p>Внутри категории примеры неравноправны. Андреас описывает её как радиальную структуру: в центре прототип, ближе к краям менее обычные члены. Пингвин и страус тоже птицы, но стоят на самом краю, поэтому фраза <q>пингвин птица</q> звучит чуть странно.</p>`},
+{h:"Как прототип искажает опыт", html:`
+<p>Выбор одного примера всегда искажает опыт: остальные примеры теряются из виду. Если прототип слова <q>начальник</q> это первый жёсткий руководитель, каждый новый начальник заранее видится через него.</p>
+<p>Один яркий случай весит больше сотни обычных. Андреас замечает, что многие из нас уделяют прототипам и категориям больше внимания, чем реальному миру вокруг.</p>
+<div class="key"><div class="t">Рабочий вопрос</div><p>«Какой пример всплывает у меня, когда я думаю об этом слове?» Смени этот пример, и смысл всей категории сдвинется.</p></div>`}
+],
+keys:["Прототип: пример, который заменяет всю категорию.","Виды: типичный, средний, выдающийся, идеал, образец, стереотип.","Категория радиальна: центр и края.","Прототип всегда искажает, его можно заменить."],
+quiz:[
+{q:"Человек боится летать, потому что помнит репортаж о катастрофе. Какой это прототип?", o:["Средний пример","Выдающийся (яркий) пример","Образец"], a:1, e:"Яркий запоминающийся случай подменяет тысячи обычных спокойных рейсов."},
+{q:"Почему «пингвин птица» звучит странновато?", o:["Пингвин не птица","Пингвин далеко от прототипа, на краю радиальной структуры","У категории «птица» нет прототипа"], a:1, e:"Пингвин входит в категорию, но стоит на её краю, далеко от типичного образа."},
+{q:"Что произойдёт, если заменить прототип категории?", o:["Ничего, категория останется прежней","Изменится смысл и реакция на всю категорию","Категория исчезнет"], a:1, e:"Прототип даёт категории значение. Другой прототип даёт другое значение."}
+],
+practice:["category-script","prototype-swap"]},
+
+/* ---------- 4 ---------- */
+{id:"criteria", part:1, title:"Критерии", short:"Признаки, по которым мы отбираем опыт",
+lead:"Критерий решает, попадёт опыт в категорию или останется за дверью. Большинство критериев работает незаметно, и их стоит вытащить на свет.",
+blocks:[
+{h:"Конкретные и общие", html:`
+<p>Критерий бывает сенсорным: <q>голубой</q>, <q>громкий</q>, <q>тёплый</q>. Его можно проверить органами чувств. А бывает общим: <q>умный</q>, <q>надёжный</q>, <q>красивый</q>. Такой критерий сам является категорией, и у него есть свои критерии.</p>`},
+{h:"Дискретные и аналоговые", fig:"threshold", html:`
+<p>Дискретный критерий отвечает «да» или «нет»: есть права или нет. Аналоговый работает по шкале «больше или меньше»: опыт, зарплата, расстояние. У многих аналоговых критериев есть <b>порог</b>, после которого они становятся дискретными: до 40 минут дороги квартира подходит, после уже нет.</p>`},
+{h:"«И» сужает, «или» расширяет", html:`
+<p>Критерии соединяются союзами. <q>Умный, и добрый, и с чувством юмора, и спортивный</q> сильно сужает круг. <q>Умный или добрый</q> его расширяет. Чем больше критериев и чем они детальнее, тем меньше событий проходит через фильтр.</p>`},
+{h:"Иерархия критериев", html:`
+<p>Если выписать критерии и расставить их по важности, внимание пойдёт сначала на главное. При выборе квартиры один ставит первым безопасность района, другой дорогу до работы, третий солнечный свет. Явный порядок экономит месяцы сомнений.</p>`},
+{h:"Перфекционизм и его противоположность", html:`
+<p>Слишком жёсткие критерии приводят к перфекционизму: ничего не подходит, постоянное разочарование. Слишком мягкие ведут к обратному: человек соглашается на то, что его на самом деле не устраивает. Андреас называет полезным навыком подстройку критериев под контекст. Для черновика один уровень требований, для финальной версии другой.</p>
+<div class="key"><div class="t">Важно</div><p>Неподходящий критерий даёт неподходящую реакцию. Если оценивать друга по критериям, которые годятся для делового партнёра, дружба будет постоянно «не дотягивать».</p></div>`}
+],
+keys:["Критерий: признак членства в категории.","Бывают сенсорные и общие, дискретные и аналоговые.","«И» сужает круг, «или» расширяет.","Расставь критерии по важности.","Подстраивай строгость под контекст."],
+quiz:[
+{q:"«Квартира должна быть не дальше 40 минут от работы». Что это за критерий?", o:["Чисто дискретный","Аналоговый с порогом","Общий, несенсорный"], a:1, e:"Время в пути меняется плавно, но после 40 минут критерий превращается в «нет»."},
+{q:"Что сильнее сужает круг подходящих людей?", o:["Умный или добрый","Умный и добрый и спортивный","Добрый"], a:1, e:"Связка «и» требует выполнения всех условий сразу."},
+{q:"Чем полезна подстройка критериев под контекст?", o:["Помогает избежать и перфекционизма, и согласия на неподходящее","Делает критерии мягче во всех ситуациях","Позволяет вообще отказаться от критериев"], a:0, e:"Строгость критериев зависит от задачи. В одних местах нужна высокая планка, в других достаточно средней."}
+],
+practice:["criteria-builder"]},
+
+/* ---------- 5 ---------- */
+{id:"levels", part:1, title:"Логические уровни", short:"Лестница от частного к общему",
+lead:"Категории складываются в лестницу. Рекс входит в «собаки», собаки входят в «млекопитающие», млекопитающие в «животные». Такая лестница называется логическими уровнями.",
+blocks:[
+{h:"Включение категорий", fig:"tree", html:`
+<p>Более общая категория стоит выше тех, что в неё входят. Проверка очень простая:</p>
+<div class="key"><div class="t">Тест на уровень</div><p>«X является разновидностью Y?» Если да, Y находится на более высоком логическом уровне, чем X.</p></div>
+<p>Собака является разновидностью млекопитающего. Значит, «млекопитающее» выше. На этом принципе построена любая классификация: биологическая, библиотечная, товарная.</p>`},
+{h:"Наследственность и сужение", html:`
+<ul>
+<li><b>Наследственность.</b> Всё, что верно для верхней категории, верно и для нижней. Если млекопитающие кормят детёнышей молоком, собаки тоже.</li>
+<li><b>Сужение.</b> Нижняя категория добавляет свой критерий. Из всех млекопитающих остаются только те, что лают. Круг членов становится уже.</li>
+</ul>`},
+{h:"Почти все слова называют категории", html:`
+<p>Конкретный диапазон называется так: <q>вон тот дом (показываешь пальцем)</q>, <q>Вязовая улица, 112</q>, <q>Билл Сандерсон</q>. Слова <q>дом</q>, <q>улица</q>, <q>человек</q> уже категории. Пока их не уточнили, собеседник подставляет свой прототип.</p>`},
+{h:"Когда уровни перепутаны", html:`
+<div class="example"><div class="t">Классический прыжок вверх</div><p><q>Я провалил экзамен</q> описывает конкретное событие. <q>Я неудачник</q> относит всю личность к категории на очень высоком уровне. По принципу наследственности «неудачность» теперь распространяется на всё, что человек делает.</p></div>
+<p>Полезно замечать такие прыжки и возвращаться на нужный уровень: какое событие, когда, где.</p>`}
+],
+keys:["Общая категория выше частной.","Тест: «X является разновидностью Y?»","Наследственность: свойства идут сверху вниз.","Сужение: внизу добавляется критерий.","Следи за прыжками от события к личности."],
+quiz:[
+{q:"Что выше по логическому уровню?", o:["Яблоко","Фрукт","Антоновка"], a:1, e:"Яблоко является разновидностью фрукта, антоновка является разновидностью яблока."},
+{q:"«Все птицы откладывают яйца, значит, и воробей тоже». Какой принцип?", o:["Сужение","Наследственность","Индукция"], a:1, e:"Свойство верхней категории передаётся вниз."},
+{q:"«Я опоздал на встречу, я безответственный человек». Что произошло?", o:["Расширение диапазона во времени","Прыжок от события к категории личности на высоком уровне","Смена прототипа"], a:1, e:"Одно событие стало основанием для категории про всю личность."}
+],
+practice:[]},
+
+/* ---------- 6 ---------- */
+{id:"scope-vs-category", part:1, title:"Диапазон или категория?", short:"Главное различение книги и тест на него",
+lead:"Вся книга держится на одном различении. Если научиться за секунду понимать, с чем ты работаешь, диапазоном или категорией, многие запутанные вещи распутываются сами.",
+blocks:[
+{h:"Тест в один вопрос", fig:"partVsKind", html:`
+<ul>
+<li><b>Диапазон:</b> «Мы говорим о части сенсорного опыта?» Колесо этой машины. Левая половина картины. Последние пять минут разговора.</li>
+<li><b>Категория:</b> «Мы говорим о событии как о примере группы?» Машина как вид транспорта. Картина как пример импрессионизма. Разговор как пример ссоры.</li>
+</ul>
+<p>Диапазон делится на части или входит в большее целое. Категория делится на подкатегории или входит в более общую категорию.</p>`},
+{h:"«Что нравится» и «что важно»", html:`
+<p>Два похожих вопроса ведут в разные стороны.</p>
+<div class="example"><div class="t">«Что тебе нравится в отпуске на море?»</div><p>Ответ уходит в детали опыта: тёплый песок, шум волн, запах соли. Это диапазон.</p></div>
+<div class="example"><div class="t">«Чем для тебя важен отпуск на море?»</div><p>Ответ поднимается к категориям: свобода, отдых, время с семьёй. Это категории.</p></div>
+<p>Этот контраст лежит в основе упражнения «Нравится и важно».</p>`},
+{h:"Четыре направления вместо двух", fig:"fourWays", html:`
+<p>В НЛП давно говорят о «чанкинге»: укрупнении и разукрупнении. Андреас показывает, что эти слова смешивали два разных движения. «Укрупнением» называли и переход к большему диапазону, и переход к более общей категории. На деле направлений четыре: диапазон больше, диапазон меньше, категория общее, категория конкретнее.</p>`},
+{h:"Пример из терапии: чистый язык", html:`
+<p>Джеймс Лоули и Пенни Томпкинс на основе работы Дэвида Гроува создали «символическое моделирование». Терапевт ничего не утверждает. Он задаёт вопросы из короткого списка и вставляет в них слова клиента. Попробуй определить, что выявляет каждый вопрос: диапазон или категорию.</p>
+<div class="plate" style="margin:12px 0"><ol style="padding-left:20px;color:var(--text2);font-size:15px">
+<li>И есть ли ещё что-то про …?</li><li>И каким является этот …?</li><li>И вот это … похоже на что?</li><li>И где …?</li><li>И в каком месте …?</li><li>И затем что происходит?</li><li>И что происходит потом?</li><li>И что происходит прямо перед …?</li><li>И откуда может взяться …?</li></ol></div>
+<p>Вопросы о месте и о последовательности («где», «что потом», «что перед этим») меняют диапазон. Вопросы «каким является» и «похоже на что» работают с категорией, причём последний приглашает к метафоре.</p>`}
+],
+keys:["Часть опыта: диапазон. Пример группы: категория.","«Что нравится?» ведёт в диапазон.","«Что важно?» ведёт в категорию.","Направлений четыре: диапазон шире и уже, категория общее и конкретнее.","Чистый язык меняет и то, и другое одними вопросами."],
+quiz:[
+{q:"«Экран моего телефона». Что это?", o:["Диапазон: часть конкретного предмета","Категория: пример группы"], a:0, e:"Экран это часть сенсорно-очевидного предмета."},
+{q:"«Мой телефон как пример гаджета». Что это?", o:["Диапазон","Категория"], a:1, e:"Телефон рассматривается как представитель группы."},
+{q:"Вопрос «И что происходит потом?» меняет…", o:["Диапазон во времени","Категорию на более общую"], a:0, e:"Он сдвигает кадр дальше по времени."},
+{q:"Вопрос «Чем для тебя важна эта работа?» скорее выявит…", o:["Детали опыта (диапазон)","Категории и ценности"], a:1, e:"«Важно» поднимает ответ к категориям."}
+],
+practice:["like-important","trainer:scopecat"]},
+
+/* ---------- 7 ---------- */
+{id:"scope-change", part:2, title:"Изменение диапазона", short:"Сдвинь кадр, и смысл изменится",
+lead:"Если поменять размер или положение кадра, событие начинает означать другое. Новых фактов при этом никто не добавляет со стороны: человек просто видит больше, меньше или другое из своего же опыта.",
+blocks:[
+{h:"Четыре способа изменить диапазон", fig:"scopeChanges", html:`
+<p>Диапазон можно сделать <b>больше</b>, <b>меньше</b>, сдвинуть так, чтобы он <b>пересекался</b> с прежним, или взять совсем <b>другой</b>. Всё это можно делать во времени, в пространстве или сразу в обоих.</p>
+<p>Изменение диапазона меняет количество и тип информации, на которую опирается человек. Это вытаскивает скрытые критерии и меняет то, как он категоризирует событие.</p>`},
+{h:"Шире: причины и последствия", html:`
+<div class="example"><div class="t">Пример</div><p>Сотрудник опоздал на совещание. В узком кадре это <q>безответственность</q>. Расширь кадр по времени: он два года не опаздывал ни разу, а сегодня отвёз соседку в больницу. Категория меняется сама.</p></div>
+<p>Частый способ расширить диапазон: добавить прошлые причины и будущие последствия.</p>`},
+{h:"Ошибка широкого кадра", html:`
+<p>Растягивать сегодняшнее горе на далёкое будущее (<q>так будет всегда</q>) значит делать необоснованный прогноз. Андреас называет это неправильным использованием большого диапазона. С радостью работает та же механика: человек чувствует себя лучше, но заранее закладывает будущее разочарование.</p>`},
+{h:"Уже: сила одного шага", html:`
+<p>Иногда полезнее сузить кадр. Человеку в горе тяжело думать о годах впереди, а вот о сегодняшнем вечере думать можно. Спортсмену на дистанции полезно видеть следующий километр.</p>`},
+{h:"Почему это чистый метод", html:`
+<div class="key"><div class="t">Важное свойство</div><p>Меняя диапазон, ты не навязываешь человеку свои ценности. Новая категоризация рождается из его собственного опыта, критериев и истории. Поэтому изменения держатся.</p></div>
+<p>Ещё один инструмент из этой главы: <b>линия времени</b>. У каждого прошлое и будущее как-то расположены в пространстве: сзади и спереди, слева и справа. Изменение этой структуры тоже меняет диапазон.</p>`}
+],
+keys:["Диапазон можно сделать больше, меньше, сдвинуть или заменить.","Шире: прошлые причины и будущие последствия.","Растягивать горе в будущее значит делать ложный прогноз.","Уже: фокус на ближайшем шаге.","Метод уважает ценности самого человека."],
+quiz:[
+{q:"«Эта ошибка испортит мне всю жизнь». Что не так с диапазоном?", o:["Он слишком узкий","Неприятное чувство растянуто на огромный будущий диапазон без оснований","Диапазон пересекается с чужим"], a:1, e:"Это необоснованный прогноз: сегодняшнее событие растянуто на всё будущее."},
+{q:"Почему изменение диапазона называют чистым методом?", o:["Оно не требует слов","Оно опирается на опыт и ценности самого человека","Оно всегда расширяет кадр"], a:1, e:"Человек сам видит новое в своём опыте, и никто не подсовывает ему чужие оценки."},
+{q:"Марафонцу тяжело на 30-м километре. Что поможет?", o:["Представить весь оставшийся путь","Сузить диапазон до следующего поворота","Вспомнить все прошлые неудачи"], a:1, e:"Узкий кадр собирает ресурсы на ближайшей задаче."}
+],
+practice:["scope-script","scope-category-script"]},
+
+/* ---------- 8 ---------- */
+{id:"category-scope", part:2, title:"Как категория меняет диапазон", short:"Мы «видим» больше, чем есть перед глазами",
+lead:"Отнеся событие к категории, мы тут же дорисовываем то, чего не видим. Андреас различает три способа, которыми категория расширяет диапазон.",
+blocks:[
+{h:"Три диапазона категории", fig:"threeScopes", html:`
+<ul>
+<li><b>Обозримый диапазон.</b> Насколько далеко в пространстве и времени тянется то, что мы наблюдаем, когда относим опыт к категории. Слово <q>гроза</q> включает тучи, ветер, гром и примерно час времени.</li>
+<li><b>Выведенный диапазон.</b> По критериям категории мы делаем выводы о том, чего не воспринимаем. Видишь из-за забора кончик хвоста, думаешь <q>собака</q>, и уже знаешь, что у неё четыре лапы и она может залаять.</li>
+<li><b>Совокупный диапазон.</b> Событие связывается со всеми другими примерами категории и с её прототипом.</li>
+</ul>`},
+{h:"Сила и опасность выводов", html:`
+<p>Выведенный диапазон очень полезен: он экономит время и позволяет предсказывать. Он же лежит в основе предубеждений. Отнёс человека к группе, и тут же «знаешь» о нём кучу вещей, которых не видел.</p>
+<div class="example"><div class="t">Пример</div><p><q>Он программист</q>. Сразу дорисовывается: интроверт, не любит общаться, играет в игры. Ничего из этого ты не наблюдал.</p></div>`},
+{h:"Подходящая категория обогащает, неподходящая заражает", html:`
+<p>Когда опыт лёг в подходящую категорию, он получает богатство всех её примеров. Когда в неподходящую, к нему прилипает всё лишнее. Одна неудачная шутка партнёра, отнесённая к категории <q>как мой бывший</q>, тянет за собой годы старой боли.</p>`},
+{h:"Категория живёт дольше опыта", html:`
+<p>Созданная однажды категория начинает предшествовать опыту и раскладывать новое по старым полкам. Это удобно и быстро. Из-за этого же трудно реагировать на события по-новому и творчески.</p>
+<div class="key"><div class="t">Практический вывод</div><p>Совокупный диапазон можно использовать намеренно: собрать все важные факторы решения в одну картинку и рассмотреть их одновременно. Этому посвящено упражнение с кругами.</p></div>`}
+],
+keys:["Обозримый диапазон: сколько охватывает категория.","Выведенный: что мы дорисовываем по критериям.","Совокупный: связь со всеми примерами и прототипом.","Выводы полезны и одновременно рождают предубеждения."],
+quiz:[
+{q:"Слышишь сирену и думаешь: «где-то пожар, едут пожарные». Какой диапазон сработал?", o:["Обозримый","Выведенный","Совокупный"], a:1, e:"Ты сделал вывод о том, чего не видишь, по критериям категории."},
+{q:"Новая ссора сразу напоминает все прошлые ссоры. Это…", o:["Совокупный диапазон категории","Сужение","Наследственность"], a:0, e:"Событие связалось со всеми примерами категории «ссора»."},
+{q:"Почему трудно менять категории?", o:["Категория предшествует новому опыту и раскладывает его по-старому","Категорий слишком мало","Категории не связаны с опытом"], a:0, e:"Готовые категории заранее определяют, как будет воспринят новый опыт."}
+],
+practice:["aggregate"]},
+
+/* ---------- 9 ---------- */
+{id:"values", part:2, title:"Ценности", short:"Категории того, что нам важно",
+lead:"Ценность: категория опыта, который удовлетворяет наши потребности или желания. У нас много ценностей, и чтобы им всем соответствовать, их приходится как-то упорядочивать.",
+blocks:[
+{h:"Два вида чувств", fig:"feelings", html:`
+<ul>
+<li><b>Чувства восприятия</b> дают факты: тепло, давление, звук, вкус. Они сообщают, что происходит снаружи и внутри тела.</li>
+<li><b>Оценочные чувства</b> (нравится и не нравится) сообщают, насколько это важно для нас.</li>
+</ul>
+<p>Оценочные чувства и есть главный критерий ценностей. Они говорят «всё идёт хорошо» или предупреждают «что-то не так, пора менять».</p>`},
+{h:"Ошибка логического уровня", html:`
+<p>Многие методы пытаются напрямую убрать неприятное оценочное чувство и оставляют ситуацию как есть. Андреас указывает: оценочное чувство всегда стоит на более высоком логическом уровне, чем ситуация, которая его вызвала. Убирать сигнал, не трогая ситуацию, значит работать не на том уровне.</p>
+<div class="example"><div class="t">Аналогия</div><p>Пожарная сигнализация пищит. Можно вынуть батарейку. Можно посмотреть, что горит.</p></div>`},
+{h:"Разложить «состояние» на части", html:`
+<p>Слово <q>состояние</q> размыто: оно означает то чувство, то целый пласт восприятия, мыслей и поведения. Полезнее разложить его на <b>модальности</b> (что видно, слышно, ощущается) и <b>субмодальности</b> (яркость, размер, расстояние, громкость, темп). Маленькую часть опыта изменить проще, и вариантов изменения становится больше.</p>`},
+{h:"Заимствованные ценности", html:`
+<p>Часть ценностей мы берём у родителей и общества без личного опыта. Это полезно: ребёнку незачем попадать под грузовик, чтобы понять ценность осторожности. Но если общественная ценность человеку не подходит, ему приходится подавлять свои естественные реакции. Иногда он даже сужает диапазон, чтобы не видеть конфликта.</p>`}
+],
+keys:["Ценность: категория того, что удовлетворяет потребность.","Чувства восприятия дают факты, оценочные дают важность.","Оценочное чувство выше по уровню, чем ситуация.","«Состояние» полезно раскладывать на субмодальности."],
+quiz:[
+{q:"Тебе неприятно на работе. Чем отличается работа на «правильном» уровне?", o:["Нужно просто перестать чувствовать неприятное","Стоит исследовать ситуацию, которая вызывает чувство","Нужно найти другое чувство"], a:1, e:"Оценочное чувство сигналит о ситуации. Менять имеет смысл ситуацию или её восприятие."},
+{q:"«Песок горячий» это чувство…", o:["Восприятия","Оценочное"], a:0, e:"Это сенсорный факт о мире."},
+{q:"Зачем раскладывать состояние на субмодальности?", o:["Чтобы усложнить задачу","Маленькие части опыта легче менять, и вариантов больше","Чтобы не менять ничего"], a:1, e:"Точность даёт больше рычагов для изменения."}
+],
+practice:["values-rank"]},
+
+/* ---------- 10 ---------- */
+{id:"hierarchy", part:2, title:"Иерархия и гетерархия", short:"Что главнее и кто управляет",
+lead:"Лестница категорий сама по себе ничего не говорит о важности или власти. «Собака» не командует «Рексом». Чтобы появилась иерархия контроля, нужен особый критерий отношений.",
+blocks:[
+{h:"Иерархия включения", html:`
+<p>Простая иерархия, основанная на включении категорий, даёт наследственность и сужение. Её уровни не обязательно означают, что верхний важнее или управляет нижним.</p>`},
+{h:"Иерархия важности и контроля", html:`
+<p>Иерархия важности или контроля появляется, когда есть <b>критерий отношений</b>: правило, по которому члены разных уровней связаны друг с другом. В армии звание определяет, кто отдаёт приказ. Без такого правила уровни просто описывают, что во что входит.</p>
+<p>Пример иерархии важности без контроля: метапрограммы. Они упорядочивают, что для человека важнее, но никто никем не управляет.</p>`},
+{h:"Иерархия ценностей", html:`
+<p>Общая иерархия ценностей помогает быстро реагировать в новых ситуациях, не тратя время на раздумья. Но любая иерархия статична и поэтому искажает: в разных контекстах приоритеты меняются. Здоровье важнее карьеры, пока вдруг не наступает неделя запуска проекта.</p>`},
+{h:"Гетерархия: как комитет", fig:"heterarchy", html:`
+<p>Нейробиолог изучал систему в стволе мозга, которая решает, спим мы или бодрствуем и на что смотрим. Её работу лучше описывает слово <b>гетерархия</b>. Это комитет, где каждый может говорить и слушать одновременно. Части мозга общаются и приходят к согласию, что сейчас срочнее всего. Управление временно получает та часть, у которой есть нужная срочная информация.</p>
+<p>Другие примеры: любая природная экосистема, скачки, где лидер меняется по ходу забега, игра «камень, ножницы, бумага».</p>`}
+],
+keys:["Включение не равно власти.","Контроль требует критерия отношений.","Иерархия ценностей полезна и статична.","Гетерархия: управление переходит к тому, у кого срочная информация."],
+quiz:[
+{q:"Что нужно, чтобы иерархия стала иерархией контроля?", o:["Больше уровней","Критерий отношений между уровнями","Наследственность"], a:1, e:"Правило связи между уровнями определяет, кто кем управляет."},
+{q:"«Камень, ножницы, бумага» это пример…", o:["Иерархии контроля","Гетерархии","Иерархии включения"], a:1, e:"Ни один элемент не главный всегда: всё зависит от того, что против чего."},
+{q:"Почему иерархию ценностей стоит пересматривать?", o:["Она статична, а контексты меняются","Ценности вредны","Она мешает быстро решать"], a:0, e:"Порядок, полезный в одном контексте, может мешать в другом."}
+],
+practice:["values-rank"]},
+
+/* ---------- 11 ---------- */
+{id:"significance", part:2, title:"Значимость: молекулы смысла", short:"Причина, эквивалентность и контекст",
+lead:"Диапазоны и категории Андреас сравнивает с атомами смысла. Из них собираются молекулы: причина и следствие, эквивалентность и контекст. Через эти три формы мы связываем события между собой.",
+blocks:[
+{h:"Три формы", fig:"threeForms", html:`
+<ul>
+<li><b>Причина и следствие: X → Y.</b> <q>Твоё опоздание заставляет меня думать, что я тебе безразлична.</q></li>
+<li><b>Эквивалентность: X = Y.</b> <q>Твоё опоздание означает, что я тебе безразлична.</q></li>
+<li><b>Контекст: X в Y.</b> <q>Ты слишком X для Y.</q> <q>Опоздание на наше свидание.</q></li>
+</ul>`},
+{h:"Что теперь значит «рефрейминг»", html:`
+<p>Андреас предлагает простое определение. Рефрейминг: любое вмешательство, которое меняет диапазон человека в пространстве и времени, или категорию того же диапазона, или и то и другое.</p>`},
+{h:"Сначала соответствие, потом новое направление", html:`
+<p>Предлагать новое значение проще в той же форме, в которой человек думает сейчас. Сначала присоединяешься к его связи, потом ведёшь к другой связи той же формы.</p>
+<div class="example"><div class="t">Причина и следствие</div><p><q>Моё опоздание заставило тебя думать, что ты мне безразлична. И это заставило тебя проверить, насколько наши отношения тёплые.</q></p></div>
+<div class="example"><div class="t">Эквивалентность</div><p><q>Ты подумала, что моё опоздание означает безразличие. А ты для меня так важна, что я ехал аккуратно, чтобы точно добраться целым.</q></p></div>
+<div class="example"><div class="t">Контекст</div><p><q>Прости, что моё опоздание заставило тебя волноваться. И всё-таки опоздать лучше, чем совсем не прийти.</q></p></div>
+<p>Эти фразы взяты как образцы структуры. В жизни слова будут свои.</p>`}
+],
+keys:["Три формы смысла: X → Y, X = Y, X в Y.","Рефрейминг меняет диапазон, категорию или оба.","Сначала совпади с формой, потом предложи новую связь."],
+quiz:[
+{q:"«Он молчит, значит, злится». Какая форма?", o:["Причина и следствие","Эквивалентность","Контекст"], a:1, e:"Молчание приравнено к злости: X = Y."},
+{q:"«Твой тон выводит меня из себя». Какая форма?", o:["Причина и следствие","Эквивалентность","Контекст"], a:0, e:"Тон назван причиной реакции: X → Y."},
+{q:"«Я слишком прямолинейна для этой компании». Какая форма?", o:["Причина и следствие","Эквивалентность","Контекст"], a:2, e:"Поведение оценивается относительно контекста: X в Y."}
+],
+practice:["significance","trainer:forms"]},
+
+/* ---------- 12 ---------- */
+{id:"recat-same", part:2, title:"Рекатегоризация на том же уровне", short:"Другое слово, другие следствия",
+lead:"Можно переложить событие в соседнюю категорию того же уровня. Новое слово подчёркивает другие стороны события и тянет за собой другие выводы.",
+blocks:[
+{h:"Переопределение", fig:"lateral", html:`
+<p>У каждого слова свой выведенный и совокупный диапазон. Поэтому замена слова меняет реакцию.</p>
+<div class="example"><div class="t">«Ненормальное» → «некомпетентное»</div><p>Ненормальность звучит как приговор. Некомпетентность значит, что человек ещё не научился. Учиться можно, значит, ситуацию можно изменить.</p></div>
+<div class="example"><div class="t">«Неудача» → «обратная связь»</div><p>Неудача ставит точку. Обратная связь подразумевает, что из ошибки можно извлечь урок и в следующий раз отреагировать лучше.</p></div>`},
+{h:"Нормализация и преувеличение", html:`
+<p>Многие считают свою проблему или себя странными, патологическими. Если показать, что так реагирует большинство людей в похожей ситуации, внимание освобождается для самой задачи.</p>
+<p>Обратный ход: <b>преувеличение</b>. Опиши проблему ещё мрачнее, и реальная на этом фоне начнёт выглядеть обычной.</p>`},
+{h:"Переворот пресуппозиции", html:`
+<p>Если в восприятии события есть тревожная пресуппозиция (скрытое допущение), её можно перевернуть. Вместе с ней переворачивается и реакция.</p>`},
+{h:"Вниз, в подкатегорию", html:`
+<p>Можно двинуться внутрь категории, к более конкретной подкатегории. <q>Ты всегда злишься</q> → <q>В каких именно ситуациях это бывает?</q> Огромная размытая категория распадается на несколько конкретных, с которыми можно работать.</p>`},
+{h:"Возражения как информация", html:`
+<div class="key"><div class="t">Важно для практики</div><p>Протест против изменения часто называют сопротивлением. Андреас видит в нём информацию: человек показывает, что ещё нужно учесть, чтобы изменение подошло и держалось долго.</p></div>`}
+],
+keys:["Соседняя категория даёт другие следствия.","Неудача как обратная связь.","Нормализация снимает ярлык «со мной что-то не так».","Подкатегории делают проблему конкретной.","Возражение работает как подсказка."],
+quiz:[
+{q:"«Я не умею выступать» вместо «Я боюсь сцены, со мной что-то не так». Что произошло?", o:["Переопределение в сторону некомпетентности, которую можно исправить","Расширение диапазона во времени","Переход на более высокий уровень"], a:0, e:"Навык можно освоить, а ярлык «со мной что-то не так» парализует."},
+{q:"Клиент возражает против предложенного изменения. Как это видит Андреас?", o:["Как сопротивление, которое надо сломать","Как информацию о том, что ещё нужно учесть","Как знак, что метод не работает"], a:1, e:"Возражение помогает сделать изменение экологичным и прочным."}
+],
+practice:["prototype-swap"]},
+
+/* ---------- 13 ---------- */
+{id:"recat-higher", part:2, title:"Рекатегоризация на более высоком уровне", short:"Шаг вверх даёт свободу",
+lead:"Более общая категория даёт больше свободы: у неё другие критерии, и она связывает событие с новыми соседями.",
+blocks:[
+{h:"Что даёт шаг вверх", fig:"upward", html:`
+<ul>
+<li>По принципу наследственности критерии общей категории становятся критериями исходной.</li>
+<li>Общая категория включает и другие категории. Исходное событие получает новых соседей, а значит, новый совокупный диапазон.</li>
+</ul>
+<div class="example"><div class="t">Пример</div><p><q>Ревность</q> → <q>один из способов беречь то, что для тебя ценно</q>. В той же категории есть забота, внимание, верность. Ревность получает соседей, и с ней становится проще работать.</p></div>`},
+{h:"Пресуппозиции любой терапии", html:`
+<p>Базовые допущения любого метода находятся на высоком уровне и окрашивают всё, что делает терапевт, словами и без слов.</p>
+<ul>
+<li>Медицинская модель: борьба с болезнью.</li>
+<li>Религиозная модель: борьба со злом.</li>
+</ul>
+<p>Обе предполагают противостояние. Две пресуппозиции НЛП позволяют встать рядом с клиентом:</p>
+<ul>
+<li><b>Позитивное намерение.</b> За любым поведением стоит намерение, полезное для человека. К нему можно присоединиться и вместе искать другие способы его выполнить.</li>
+<li><b>Лучший доступный выбор.</b> Люди всегда делают лучший выбор из того, что им доступно в данный момент. Это снимает обвинения за прошлое и предполагает, что человек способен на лучший выбор, когда у него появятся варианты.</li>
+</ul>`}
+],
+keys:["Шаг вверх: новые критерии и новые соседи.","Пресуппозиции метода окрашивают всё.","Позитивное намерение.","Лучший выбор из доступных."],
+quiz:[
+{q:"Что происходит по принципу наследственности при переходе к более общей категории?", o:["Критерии общей категории применяются к исходному событию","Событие теряет все свойства","Ничего"], a:0, e:"Свойства верхнего уровня спускаются вниз."},
+{q:"Какая пресуппозиция снимает обвинения за прошлое?", o:["Карта не территория","Люди делают лучший выбор из доступных им","Каждая проблема это болезнь"], a:1, e:"Она объясняет прошлое поведение ограниченным выбором и открывает путь к новым вариантам."}
+],
+practice:["significance"]},
+
+/* ---------- 14 ---------- */
+{id:"model-world", part:3, title:"Подтекст и модель мира", short:"Как сказать, не говоря прямо",
+lead:"Каждое сообщение несёт подтекст: то, что сказано без слов. Одни подтексты привязаны к содержанию, другие свободны от него. Вторые Андреас называет паттернами «модели мира».",
+blocks:[
+{h:"Вербальный подтекст", fig:"implication", html:`
+<p>Он опирается на допущение, что мир разделён на пары противоположностей. Говоришь что-то про одну половину пары, и слушатель достраивает противоположное про вторую.</p>
+<div class="example"><div class="t">Пример</div><p><q>Сегодня ты пришёл вовремя.</q> Подтекст: обычно ты опаздываешь.</p></div>
+<p>В отличие от пресуппозиций, подтекст трудно отследить в словах. Поэтому он сильнее действует и легко отрицается: «я ничего такого не говорил».</p>`},
+{h:"Модель мира: фразы без содержания", html:`
+<p>Когда человек застрял в проблеме, его категоризация обычно стоит на самом высоком логическом уровне: <q>Проблема в том, что она хочет меня контролировать, и это факт</q>. Другой возможности он просто не видит.</p>
+<p>Паттерны модели мира напоминают о разнице между картой и территорией. Они оставляют содержание нетронутым и только подразумевают, что то же событие можно воспринять иначе. Шесть приёмов:</p>
+<ul>
+<li><b>Предикат нереальности:</b> «кажется», «должно быть». Образ становится менее чётким.</li>
+<li><b>Предикат описания:</b> «видишь», «думаешь», «понимаешь». Представление ситуации отделяется от самой ситуации.</li>
+<li><b>Ты и другие:</b> «для тебя». Подразумевается, что у других может быть другое понимание.</li>
+<li><b>Интонация:</b> выделенное слово намекает на альтернативу. Попробуй на фразе «я не люблю зелёное манго» в тренажёре.</li>
+<li><b>Время:</b> «теперь», «сейчас». Подразумевается, что раньше или позже может быть иначе.</li>
+<li><b>Цитирование:</b> проблема повторяется как цитата, с вопросительной интонацией в конце.</li>
+</ul>`},
+{h:"Восемь фраз из книги", html:`
+<p>Сформулируй проблему одной фразой, например <q>Мой муж никогда не думает о том, как его слова воспринимают другие</q>. Заметь, как она ощущается внутри… Потом попроси кого-нибудь прочитать тебе эти фразы, подставляя твою формулировку, и делай паузу после каждой:</p>
+<div class="plate"><ol style="padding-left:20px;font-size:14.5px;color:var(--text2)">
+<li>То есть тебе кажется, что …</li>
+<li>Значит, ты видишь ситуацию так: …</li>
+<li>Для тебя проблема в том, что …</li>
+<li>То есть ты думаешь, что …</li>
+<li>То есть теперь ты ощущаешь, что …</li>
+<li>То, что ты вынес из этой ситуации, это …? (интонация вопроса)</li>
+<li>Твоё понимание такое: «…»</li>
+<li>Для тебя, как ты сейчас на это смотришь, проблема в том, что «…»?</li></ol></div>
+<p>Каждая фраза звучит как простой пересказ и при этом расширяет диапазон за рамки прежнего опыта. В книге упражнение делается в тройке, а в практике здесь есть генератор, который подставит твою фразу и может прочитать её вслух.</p>`}
+],
+keys:["Подтекст опирается на пары противоположностей.","Он сильнее пресуппозиции, потому что его трудно поймать.","Модель мира: фразы без содержания, которые открывают другие взгляды.","«Кажется», «для тебя», «теперь» делают проблему мягче."],
+quiz:[
+{q:"«Наконец-то ты убрал на кухне». Подтекст?", o:["Ты молодец","Обычно ты не убираешь (или убираешь редко)","Кухня большая"], a:1, e:"«Наконец-то» указывает на противоположную часть дихотомии."},
+{q:"Что подразумевает фраза «Для тебя проблема в том, что…»?", o:["Что проблема точно есть","Что у других людей может быть другое понимание","Что проблема в прошлом"], a:1, e:"Слова «для тебя» указывают на то, что это одна из возможных точек зрения."}
+],
+practice:["model-world"]},
+
+/* ---------- 15 ---------- */
+{id:"negation", part:3, title:"Отрицание", short:"В опыте нет частицы «не»",
+lead:"В сенсорном опыте отрицания не существует. Чтобы понять «не думай о белой обезьяне», нужно сначала её представить. Отсюда много проблем в общении.",
+blocks:[
+{h:"Как мы понимаем «не»", fig:"negation", html:`
+<p>Чтобы обработать отрицание, мозг сначала создаёт образ того, что отрицается, а потом как-то от него избавляется: перечёркивает, отодвигает, заменяет другой картинкой. Первый шаг пропустить нельзя.</p>`},
+{h:"Негативные цели работают медленнее", html:`
+<p>Негативные команды, цели и критерии занимают больше времени и тянут к нежелательному результату: внутренний образ направляет внимание и поведение.</p>
+<div class="example"><div class="t">Перевод в позитив</div><p><q>Не урони</q> → <q>Держи двумя руками</q><br><q>Не опаздывай</q> → <q>Приходи к девяти</q><br><q>Не хочу больше ссориться</q> → <q>Хочу говорить спокойно, даже когда не согласен</q></p></div>`},
+{h:"«Но» стирает всё перед ним", html:`
+<p><q>Хорошая работа, но…</q> Слушатель запоминает только то, что после «но». Слова <mark>но</mark>, <mark>да, но</mark>, <mark>даже если</mark> отрицают часть опыта. Простая замена на <mark>и</mark> сохраняет обе части в кадре.</p>
+<div class="example"><div class="t">Сравни</div><p><q>Ты отлично выступил, но слайды были мелкие.</q><br><q>Ты отлично выступил, и в следующий раз сделаем шрифт на слайдах крупнее.</q></p></div>`},
+{h:"Пара- и мета-сообщения", html:`
+<p>Невербальные сигналы бывают двух типов. <b>Пара-сообщения</b> совпадают с содержанием и показывают, о каком диапазоне идёт речь (жест в сторону двери на словах «вон туда»). <b>Мета-сообщения</b> категоризируют всё сказанное на более высоком уровне: подмигивание превращает фразу в шутку.</p>
+<p>Мета-сообщения требуют перевести плавную, аналоговую коммуникацию в дискретную категорию. При этом легко ошибиться, отсюда непонимание.</p>`}
+],
+keys:["Отрицание требует сначала представить отрицаемое.","Формулируй цели в позитиве.","«Но» стирает сказанное до него, «и» сохраняет обе части.","Мета-сообщения легко неверно понять."],
+quiz:[
+{q:"Почему «не волнуйся» часто усиливает волнение?", o:["Чтобы понять фразу, нужно сначала представить волнение","Человек не слышит частицу «не»","Это грубо"], a:0, e:"Отрицаемый образ создаётся раньше отрицания."},
+{q:"Какая фраза оставит в кадре и похвалу, и пожелание?", o:["Отличный отчёт, но таблицы кривые","Отличный отчёт, и таблицы можно выровнять","Таблицы кривые, хотя отчёт неплохой"], a:1, e:"Союз «и» не стирает первую часть."}
+],
+practice:["trainer:negative"]},
+
+/* ---------- 16 ---------- */
+{id:"judgment", part:3, title:"Суждение и предпочтение", short:"От «плохо» к «мне больше нравится»",
+lead:"Суждение звучит как приговор миру. Предпочтение звучит как сообщение о себе. Это разные структуры, и переход от первой ко второй сильно меняет отношения.",
+blocks:[
+{h:"Структура суждения", fig:"judgment", html:`
+<ul>
+<li>Дискретно: <q>X плохой</q>. Хорошо или плохо, третьего нет.</li>
+<li>В кадре только одна вещь, без альтернатив.</li>
+<li>Претендует на всеобщность, будто это свойство самого X.</li>
+<li>Утеряна информация: кому плохо, по какому критерию, по сравнению с чем.</li>
+</ul>`},
+{h:"Структура предпочтения", html:`
+<ul>
+<li>Аналогово: <q>Мне Y нравится больше, чем X</q>. Шкала, а на шкале много градаций.</li>
+<li>В кадре оба варианта.</li>
+<li>Личное: у других людей могут быть свои предпочтения.</li>
+</ul>
+<div class="key"><div class="t">Следствие</div><p>Предпочтения выражают наши ценности. Когда оба человека говорят о предпочтениях, их проще согласовать: каждый говорит, чего хочет, и можно искать способ, при котором оба это получат.</p></div>`},
+{h:"Когда суждение кажется оправданным", html:`
+<p>Люди склонны судить, когда чувствуют угрозу своим ценностям. Угроза бывает физической или экономической, а бывает угрозой самооценке. Она может быть сейчас или в будущем. Если понять, что именно под угрозой, проще перейти к предпочтению и поискать решение.</p>`}
+],
+keys:["Суждение: дискретно, одна вещь, всеобщность.","Предпочтение: шкала, два варианта, личное.","Предпочтения легче согласовать.","За суждением часто стоит ощущение угрозы."],
+quiz:[
+{q:"Какая фраза построена как предпочтение?", o:["Этот фильм ужасен","Мне больше нравятся фильмы с быстрым сюжетом, чем этот","Такое смотрят только глупые люди"], a:1, e:"Есть шкала, два варианта и указание, что это личная оценка."},
+{q:"Чего не хватает в суждении «Он эгоист»?", o:["Ничего, оно полное","Кому, когда, по какому критерию и по сравнению с чем","Глагола"], a:1, e:"Суждение теряет информацию, которую предпочтение восстанавливает."}
+],
+practice:["judgment"]},
+
+/* ---------- 17 ---------- */
+{id:"qualifiers", part:3, title:"Определители и модальные операторы", short:"Маленькие слова, которые задают тон",
+lead:"Пара слов в начале фразы может перекрасить всё, что идёт после. Андреас разбирает познавательные определители и модальные операторы.",
+blocks:[
+{h:"Оценивающие определители", html:`
+<p><q>К сожалению</q>, <q>к счастью</q>, <q>увы</q>, <q>слава богу</q> стоят в начале и задают оценку всему высказыванию.</p>
+<div class="example"><div class="t">Попробуй вслух</div><p><q>К сожалению, завтра понедельник.</q><br><q>К счастью, завтра понедельник.</q><br>Заметь, как меняется ощущение от одного и того же факта.</p></div>
+<p>Есть ещё определители обучения: <q>интересно</q>, <q>любопытно</q>, <q>я замечаю</q>. Они ставят человека в позицию исследователя.</p>`},
+{h:"Модальные операторы", fig:"modal", html:`
+<ul>
+<li><b>Желание:</b> хочу, хотелось бы, мечтаю.</li>
+<li><b>Необходимость:</b> должен, надо, нужно, обязан.</li>
+<li><b>Возможность:</b> могу, возможно, получится.</li>
+<li><b>Выбор:</b> выбираю, решаю, предпочитаю.</li>
+</ul>
+<p>Желание и необходимость отвечают за мотивацию. Возможность и выбор описывают способы удовлетворить нужды и желания. Каждый оператор может быть слабым или сильным: от лёгкого желания до острой необходимости.</p>`},
+{h:"Скрытая неконгруэнтность", html:`
+<p>Все модальные операторы описывают ситуацию иначе, чем она есть прямо сейчас. Если ты чего-то хочешь, значит, у тебя этого нет. Если что-то возможно, значит, оно пока не существует. В каждом таком слове заложено небольшое расхождение с реальностью.</p>`},
+{h:"Способ действия становится стилем", html:`
+<p>Оператор цепляется к глаголу и задаёт способ действия ещё до содержания: <q>я должен позвонить</q>, <q>я хочу позвонить</q>, <q>я выбираю позвонить</q>. Этот способ легко отрывается от контекста и превращается в общий стиль жизни. Человек, у которого всё «надо», живёт в постоянной обязанности, даже когда речь об отдыхе.</p>`}
+],
+keys:["«К сожалению» и «к счастью» окрашивают всю фразу.","Желание и необходимость: мотивация.","Возможность и выбор: способы.","Оператор задаёт способ действия раньше содержания."],
+quiz:[
+{q:"«Я обязан ответить на письмо сегодня». Какой оператор?", o:["Желание","Необходимость","Возможность","Выбор"], a:1, e:"«Обязан» выражает необходимость."},
+{q:"Какие операторы описывают способы удовлетворить нужды?", o:["Желание и необходимость","Возможность и выбор"], a:1, e:"Желание и необходимость дают мотивацию, а возможность и выбор дают пути."}
+],
+practice:["trainer:modal"]},
+
+/* ---------- 18 ---------- */
+{id:"self-reference", part:3, title:"Ссылка на себя", short:"Сообщение, которое говорит о самом себе",
+lead:"Некоторые сообщения описывают сами себя. Если научиться это замечать, многие обвинения теряют силу, а споры становятся понятнее.",
+blocks:[
+{h:"Что такое ссылка на себя", fig:"selfref", html:`
+<p>Утверждение ссылается на себя, когда оно входит в ту же категорию, о которой говорит. <q>Я всегда говорю правду</q>: само это утверждение тоже должно быть правдой. <q>Эта фраза состоит из пяти слов</q> описывает саму себя.</p>`},
+{h:"Сообщение об отношениях", html:`
+<p>Любое высказывание об отношениях одновременно и описывает отношения, и само является примером поведения в этих отношениях.</p>
+<div class="example"><div class="t">Пример</div><p><q>Ты меня никогда не слушаешь!</q>, сказанное с перебиванием собеседника. Сама фраза оказывается примером неслушания.</p></div>`},
+{h:"Обвинение часто возвращается к обвинителю", html:`
+<p><q>Ты упрямый</q>, сказанное человеком, который настаивает на своём. Если заметить это, можно ответить так, чтобы показать структуру, не нападая:</p>
+<div class="example"><div class="t">Варианты ответа из книги</div><p><q>Каждый из нас хотел бы, чтобы другой с ним согласился.</q><br><q>Если я действительно упрямее вас, то разумнее будет вам изменить позицию.</q></p></div>
+<p>Андреас советует сначала спросить себя: хочу ли я принять отношения, которые предлагает этот человек? Если он в позиции контроля или ты от него зависишь, иногда разумнее не указывать на ссылку на себя.</p>`}
+],
+keys:["Ссылка на себя: сообщение попадает в собственную категорию.","Фраза об отношениях одновременно пример этих отношений.","Обвинение часто применимо к обвиняющему.","Перед ответом реши, какие отношения ты хочешь."],
+quiz:[
+{q:"Где есть ссылка на себя?", o:["Я никогда ничего не обобщаю","Сегодня идёт дождь","Мне нравится кофе"], a:0, e:"Фраза «никогда не обобщаю» сама является обобщением."},
+{q:"«Перестань меня контролировать!», сказанное в форме приказа. Что тут видно?", o:["Ничего особенного","Сообщение само является попыткой контроля","Это предпочтение"], a:1, e:"Требование перестать контролировать само контролирует."}
+],
+practice:["self-ref"]},
+
+/* ---------- 19 ---------- */
+{id:"contradictions", part:3, title:"Внутренние противоречия", short:"«Будь спонтанным» и другие ловушки",
+lead:"Любое сообщение несёт три функции сразу: информацию, команду и отношение. Когда они противоречат друг другу, человек попадает в ловушку.",
+blocks:[
+{h:"Три функции сообщения", fig:"triangle", html:`
+<ul>
+<li><b>Информация:</b> что сообщается.</li>
+<li><b>Команда:</b> что слушатель должен сделать.</li>
+<li><b>Отношение:</b> как говорящий определяет связь между собеседниками.</li>
+</ul>
+<p>Многое из этого передаётся без слов: тоном, позой, паузами.</p>`},
+{h:"«Будь спонтанным»", html:`
+<p>Классика: <q>Будь спонтанным!</q>, <q>Удиви меня!</q>, <q>Хоть раз скажи, что любишь, сам, без напоминаний</q>. Реакция должна быть одновременно спонтанной и выполненной по приказу. Выполнить невозможно.</p>
+<p>Зеркальный вариант Андреас называет <b>«не будь спонтанным»</b>: <q>Не злись</q>, <q>Не грусти</q>, <q>Не бойся</q>. От человека требуют не проявлять естественных реакций, которые кому-то не нравятся. В обоих случаях спонтанное пытаются вызвать принуждением.</p>`},
+{h:"«Быть» и «делать»", html:`
+<div class="example"><div class="t">Пример</div><p><q>Сделай уже нормально, хотя ты, конечно, на это не способен.</q> Требуют действия и одновременно определяют человека как неспособного его совершить.</p></div>`},
+{h:"Как выбраться", html:`
+<ol style="padding-left:20px;color:var(--text2)">
+<li style="margin-bottom:6px">Заметить ловушку.</li>
+<li style="margin-bottom:6px">Понять, на какой функции она держится: информации, команде, отношении.</li>
+<li style="margin-bottom:6px">Увидеть допущение «или-или»: будто реакция может быть только спонтанной или только приказной.</li>
+<li>Найти вариант, где оба качества совмещаются, или выйти на уровень выше и обсудить сами отношения.</li>
+</ol>`}
+],
+keys:["Три функции: информация, команда, отношение.","«Будь спонтанным» и «не будь спонтанным».","Противоречие «быть» и «делать».","Выход: заметить, разложить, снять «или-или»."],
+quiz:[
+{q:"«Не нервничай!» относится к ловушке…", o:["«Будь спонтанным»","«Не будь спонтанным»","«Быть и делать»"], a:1, e:"Требуют не проявлять естественную реакцию."},
+{q:"Что объединяет обе ловушки спонтанности?", o:["Попытка принуждением вызвать или остановить спонтанную реакцию","Отрицание","Ссылка на прошлое"], a:0, e:"Противоречие между принуждением и спонтанностью."}
+],
+practice:[]},
+
+/* ---------- 20 ---------- */
+{id:"paradox", part:3, title:"Парадокс", short:"Маятник «правда-ложь» и четыре выхода",
+lead:"Парадокс собирается из трёх деталей: абсолютное утверждение, ссылка на себя и отрицание. Убери любую из них, и маятник остановится.",
+blocks:[
+{h:"Как устроен парадокс", fig:"pendulum", html:`
+<p><q>Это утверждение ложно.</q> Если оно истинно, значит, ложно. Если ложно, значит, истинно. Мысль качается, как маятник.</p>
+<p>Парадокс хорошо описывает колеблющиеся системы: сон и бодрствование, вдох и выдох. А вот для описания устойчивых событий он не годится.</p>`},
+{h:"Четыре выхода", html:`
+<div class="plate" style="margin:10px 0">
+<p><b>1. Ограничить.</b> Убрать абсолютность: «иногда», «некоторые», «часто». <q>Я иногда лгу</q> уже не парадокс.</p>
+<p><b>2. Убрать ссылку на себя.</b> Пусть утверждение говорит о чём-то другом: <q>Предыдущая фраза ложна</q>.</p>
+<p><b>3. Сказать без отрицания.</b> Переформулировать позитивно.</p>
+<p style="margin:0"><b>4. Применить отрицание к себе.</b> Когда структура понятна, можно сознательно обернуть отрицание на само высказывание и выйти из колебания.</p></div>`},
+{h:"Парадоксы в жизни", html:`
+<div class="example"><div class="t">Пример</div><p><q>Я ни на что не способен.</q> Если человек способен так точно оценить себя, значит, на что-то он способен. Ограничение помогает: <q>Сейчас у меня не получается вот это</q>.</p></div>`}
+],
+keys:["Парадокс = абсолютность + ссылка на себя + отрицание.","Описывает колебания, но не устойчивые события.","Выходы: ограничить, убрать ссылку на себя, убрать отрицание, обернуть отрицание."],
+quiz:[
+{q:"Какие три элемента дают парадокс?", o:["Метафора, отрицание, вопрос","Абсолютное утверждение, ссылка на себя, отрицание","Причина, следствие, контекст"], a:1, e:"Убери любой из трёх, и парадокс исчезнет."},
+{q:"«Иногда я говорю неправду». Какой выход использован?", o:["Ограничение","Убрали ссылку на себя","Убрали отрицание"], a:0, e:"Абсолют «всегда» заменён на «иногда»."}
+],
+practice:["trainer:paradox"]},
+
+/* ---------- 21 ---------- */
+{id:"certainty", part:3, title:"Уверенность", short:"Откуда мы знаем, что это правда",
+lead:"Как мы отличаем реальное от вымышленного? Ответ спрятан в характеристиках внутренних образов. Их можно исследовать и даже менять.",
+blocks:[
+{h:"Стратегия реальности", fig:"certainty", html:`
+<p>Образы реальных событий обычно имеют характеристики, похожие на то, что мы воспринимали в реальном мире: размер, расстояние, цвет, движение, объём, звук. Мы переживаем их как истинные. Если у образа мало таких характеристик, он воспринимается как маловероятный.</p>`},
+{h:"Внешние источники", html:`
+<p>Когда нет прямого опыта, мы опираемся на внешние источники: авторитетов, свидетелей, книги. В идеале их стоит проверять на внутреннюю согласованность и сравнивать с тем, что уже известно из личного опыта. Самое надёжное доказательство реальности: <b>повторяющийся</b> личный сенсорный опыт. Даже в нём остаётся доля неуверенности.</p>`},
+{h:"Уверенность выше по уровню", html:`
+<p>Уверенность в переживании находится на более высоком логическом уровне, чем само переживание. Многие страдают от избыточной уверенности и создают проблемы себе и другим. Поэтому полезно уметь её снижать.</p>
+<div class="key"><div class="t">Простой вызов</div><p>«Ты действительно в это веришь?» Один честный вопрос иногда возвращает гибкость.</p></div>
+<p>Экспериментируя с характеристиками образов, будь бережен к себе. Дай обещание, что изменения временные и в конце всё вернётся на место. Это снимает внутреннюю тревогу.</p>`}
+],
+keys:["Реальность узнаётся по характеристикам образа.","Лучшее доказательство: повторяющийся личный опыт.","Уверенность выше по уровню, чем опыт.","Избыточную уверенность полезно снижать."],
+quiz:[
+{q:"Что Андреас называет лучшим доказательством реальности?", o:["Мнение авторитета","Повторяющийся личный сенсорный опыт","Яркость образа"], a:1, e:"Личный опыт, который повторяется, надёжнее всего."},
+{q:"Почему перед экспериментами с образами стоит пообещать себе вернуть всё назад?", o:["Чтобы не поднимать внутреннюю тревогу","Так быстрее","Это не нужно"], a:0, e:"Обещание временности делает эксперимент безопасным для психики."}
+],
+practice:["reality"]},
+
+/* ---------- 22 ---------- */
+{id:"double-bind", part:3, title:"Двойная связка", short:"Когда оба выхода проигрышные (или оба выигрышные)",
+lead:"Проблемная двойная связка ставит человека в положение «проклят, если сделаешь, и проклят, если нет». Её структуру можно развернуть в полезную сторону.",
+blocks:[
+{h:"Ловушка без выхода", fig:"doors", html:`
+<p>Термин ввёл Грегори Бейтсон больше 50 лет назад, изучая общение в семьях. В проблемной двойной связке человек ошибается, что бы ни выбрал. Часто одна часть послания передаётся словами, а вторая тоном или поведением.</p>
+<div class="example"><div class="t">Эпиграф главы</div><p><q>Ты слишком умён, чтобы поддаваться на лесть.</q> Если согласишься с комплиментом, значит, поддался на лесть.</p></div>`},
+{h:"Связка с двумя выигрышами", html:`
+<p>Та же структура может работать на человека: <q>благословен, если сделаешь, и благословен, если нет</q>. Оба выхода ведут к полезному результату.</p>
+<div class="example"><div class="t">Как это звучит</div><p><q>Можешь начать менять это уже на этой неделе, а можешь дать себе время до следующей.</q> Оба варианта предполагают изменение.</p></div>`},
+{h:"Зачем разбирать паттерны", html:`
+<p>Когда понимаешь конкретные паттерны, которые называют двойной связкой, их проще заметить и выйти из ситуации, используя её же структуру. Андреас советует регулярно в этом практиковаться.</p>`}
+],
+keys:["Проблемная связка: проиграл при любом выборе.","Части послания часто идут по разным каналам.","Полезная связка: выигрыш при любом выборе."],
+quiz:[
+{q:"«Сделай мне сюрприз, но сначала скажи, что подаришь». Что это?", o:["Полезная двойная связка","Проблемная двойная связка","Метафора"], a:1, e:"Любой вариант выполнения нарушает одну из частей просьбы."},
+{q:"Чем полезная связка отличается от проблемной?", o:["Количеством слов","Оба выхода ведут к хорошему результату","В ней нет выбора"], a:1, e:"Структура та же, результаты противоположные."}
+],
+practice:[]},
+
+/* ---------- 23 ---------- */
+{id:"metaphor", part:3, title:"Метафора", short:"X это Y: перенос критериев",
+lead:"Метафора берёт знакомый образ Y и переносит его свойства на X. Это мощный способ рекатегоризации, который проходит мимо критики.",
+blocks:[
+{h:"Как работает «X это Y»", fig:"metaphor", html:`
+<p><q>Он кремень.</q> По принципу наследственности критерии кремня (твёрдый, не гнётся, высекает искры) переходят на человека. Конкретный образ Y обычно ярче абстрактного X, поэтому Y часто становится прототипом X.</p>
+<p>Прямую метафору собеседник может принять или оспорить: <q>Нет, он совсем не кремень</q>.</p>`},
+{h:"Синекдоха и метонимия", html:`
+<ul>
+<li><b>Синекдоха:</b> часть вместо целого (<q>плуг</q> вместо сельского хозяйства) или пример вместо категории (<q>золото</q> вместо богатства).</li>
+<li><b>Метонимия:</b> ассоциация указывает на больший диапазон или общую категорию (<q>билет</q> вместо путешествия, <q>белый воротничок</q> вместо офисных служащих). Иногда материал указывает на вещь: <q>волокна</q> вместо одежды.</li>
+</ul>`},
+{h:"Метафора подсвечивает и прячет", html:`
+<p>Каждая метафора направляет внимание на одни черты и уводит от других. <q>Спор это война</q> подсвечивает победу и поражение. <q>Спор это совместный поиск</q> подсвечивает сотрудничество. Выбор метафоры меняет поведение в споре.</p>`}
+],
+keys:["Метафора переносит критерии Y на X.","Яркий Y становится прототипом X.","Синекдоха: часть или пример вместо целого.","Метонимия: ассоциация вместо целого.","Метафора всегда что-то прячет."],
+quiz:[
+{q:"«Нам нужны свежие головы в команде». Что это?", o:["Синекдоха: часть вместо целого человека","Метонимия по материалу","Прямая метафора X это Y"], a:0, e:"Голова как часть указывает на целого человека."},
+{q:"«Жизнь это марафон». Что переносится на жизнь?", o:["Критерии марафона: дистанция, темп, выносливость","Ничего","Только эмоции"], a:0, e:"Свойства Y наследуются X."}
+],
+practice:["metaphor"]},
+
+/* ---------- 24 ---------- */
+{id:"forgiveness", part:3, title:"Прощение: разбор сессии", short:"Как всё из книги работает в одной встрече",
+lead:"Последняя глава: полная, почти дословная 50-минутная сессия с Мелиссой, студенткой колледжа, записанная в 1999 году. Андреас встретил её за несколько минут до записи и показывает не только удачи, но и свои ошибки.",
+blocks:[
+{h:"Эпиграф", html:`<div class="key"><div class="t">Бернард Мельцер</div><p>Когда вы прощаете, вы никак не можете изменить прошлое, но вы обязательно измените будущее.</p></div>`},
+{h:"Что происходит в сессии", fig:"forgive", html:`
+<ul>
+<li><b>Смена диапазона в определении прощения.</b> Андреас объясняет: прощение нужно самой Мелиссе, чтобы ушли чувство потери, злость и желание отомстить.</li>
+<li><b>Форма вместо содержания.</b> Он спрашивает, где находится образ бывшего парня, какого он размера, какие голоса. Ответ: метрах в трёх справа, в полный рост, кричит. Содержание ему не нужно.</li>
+<li><b>Образец уже прощённого.</b> Затем образ человека, которого Мелисса уже простила (маму): он ближе, рядом, голос мягкий и тёплый. Изменение тона в её голосе подтверждает, что прощение настоящее.</li>
+<li><b>Конкретный шаг.</b> Предложение переместить образ бывшего туда, где находится образ мамы, и сделать его похожим.</li>
+<li><b>Работа с возражениями.</b> Андреас заранее предупреждает, что возникнут возражения, и разбирает каждое как информацию.</li>
+<li><b>Пресуппозиция лучшего выбора.</b> Каждый поступает лучшим образом из того, что ему доступно.</li>
+</ul>`},
+{h:"Ошибки, которые автор показывает сам", html:`
+<p>Андреас пишет, что в начале несколько раз не замечал ясных сообщений Мелиссы. Например, сам предложил ей результат вместо того, чтобы спросить, чего она хочет. Он оставил эти места в тексте, чтобы читатель учился и на удачах, и на промахах.</p>`},
+{h:"Как читать эту главу", html:`
+<p>Возьми карточку ключевых идей любого урока и найди её в сессии: изменение диапазона, рекатегоризацию, позитивное намерение, работу с возражениями. Так вся книга складывается в одну картинку.</p>
+<div class="key"><div class="t">Осторожно</div><p>Структуру сессии можно исследовать на себе на лёгком материале. Для глубоких травм лучше работать со специалистом.</p></div>`}
+],
+keys:["Прощение нужно самому человеку.","Форма образа важнее содержания.","Образец уже прощённого показывает путь.","Возражения разбираются как информация."],
+quiz:[
+{q:"Что Андреас сравнивал у Мелиссы?", o:["Содержание претензий к двум людям","Расположение, размер и голос образов непрощённого и прощённого человека","Её детские воспоминания"], a:1, e:"Он работал с формой образов: где, какого размера, каким голосом."},
+{q:"Для кого, по словам Андреаса, прощение?", o:["Для обидчика","Для самого прощающего","Для окружающих"], a:1, e:"Прощение освобождает от злости, потери и желания мести."}
+],
+practice:["forgiveness"]}
+];
+
+/* ================= DATA: EXERCISES ================= */
+const EXERCISES = [
+{id:"scope-script", title:"Сценарий диапазона", lesson:"scope", mode:"Один или в паре", time:"15–20 мин",
+short:"Меняешь размер кадра вокруг неприятной ситуации и смотришь, как меняется реакция.",
+intro:"Выбери лёгкую ситуацию: раздражение, неловкость, лёгкая обида. Для первого раза не бери тяжёлые воспоминания. Многоточие в инструкции означает паузу: дай себе время заметить, что происходит. В паре один читает инструкции вслух, второй выполняет.",
+steps:[
+{t:"Выбери ситуацию", text:"Вспомни недавний случай, где ты отреагировал так, как тебе не нравится. Опиши его в одной-двух фразах и оцени силу неприятного чувства от 0 до 10.", f:[{k:"sit",l:"Ситуация",ph:"Например: коллега перебил меня на планёрке"},{k:"r1",l:"Сила реакции сейчас (0–10)",ph:"7",short:1}]},
+{t:"Рассмотри свой кадр", text:"Закрой глаза и увидь эту ситуацию так, как она хранится в памяти… Насколько широк кадр в пространстве? Сколько времени он охватывает: секунды, минуты? Что видно, а что осталось за рамкой?", pause:1, f:[{k:"frame",l:"Что в кадре, что за рамкой",ph:"Вижу только его лицо и слышу одну фразу…"}]},
+{t:"Расширь в пространстве", text:"Пусть картинка медленно раздвигается в стороны… Появляется всё помещение, другие люди, их лица, то, что происходит рядом… Заметь, как по мере расширения меняется твоё чувство.", pause:1, f:[{k:"space",l:"Что появилось и как изменилась реакция",ph:"Вижу, что остальные тоже устали…"}]},
+{t:"Расширь во времени", text:"Теперь отодвинь кадр назад во времени: что происходило до этого момента? Какие причины привели к нему?… Затем вперёд: что было потом, через час, через неделю, какие последствия?…", pause:1, f:[{k:"before",l:"Что было до",ph:""},{k:"after",l:"Что было после",ph:""}]},
+{t:"Сузь кадр", text:"Вернись к исходной сцене и выбери в ней одну маленькую деталь. Сосредоточься только на ней на несколько секунд… Какое теперь чувство?", pause:1, f:[{k:"narrow",l:"Деталь и реакция",ph:""}]},
+{t:"Выбери полезный кадр и проверь экологию", text:"Какой из диапазонов дал самую полезную для тебя реакцию? Оставь ситуацию в этом кадре. Оцени силу чувства снова. Затем представь, как эта новая реакция проявится дома, на работе, с близкими, через месяц… Есть ли внутреннее возражение? Если да, запиши его: это информация.", pause:1, f:[{k:"best",l:"Самый полезный диапазон",ph:""},{k:"r2",l:"Сила реакции теперь (0–10)",ph:"3",short:1},{k:"eco",l:"Экологическая проверка: возражения",ph:"Нет возражений / Есть: …"}]}
+]},
+{id:"category-script", title:"Сценарий категории", lesson:"category", mode:"Один или в паре", time:"15–20 мин",
+short:"Находишь, к какой категории ты отнёс ситуацию, вытаскиваешь её прототип и критерии, примеряешь другие категории.",
+intro:"Снова возьми ситуацию средней силы. Цель упражнения: увидеть, что реакция зависит от полки, на которую ты положил событие, и что полок больше одной.",
+steps:[
+{t:"Ситуация", text:"Опиши ситуацию, которая вызывает у тебя неприятную реакцию.", f:[{k:"sit",l:"Ситуация",ph:"Подруга не ответила на сообщение два дня"}]},
+{t:"Как ты это называешь?", text:"Каким словом ты называешь то, что произошло? Это и есть категория. Часто это одно слово: «пренебрежение», «провал», «предательство».", f:[{k:"cat",l:"Категория",ph:"Пренебрежение"}]},
+{t:"Прототип", text:"Какой пример этой категории первым всплывает в памяти? Он может быть из совсем другой истории… Как он связан с нынешней ситуацией?", pause:1, f:[{k:"proto",l:"Прототип",ph:""}]},
+{t:"Критерии", text:"По каким признакам ситуация попала именно в эту категорию? Перечисли всё, что приходит в голову: что ты видел, слышал, что домыслил.", f:[{k:"crit",l:"Критерии",ph:"Не ответила / была онлайн / раньше отвечала быстро"}]},
+{t:"Другие категории", text:"Найди хотя бы три других названия для той же самой ситуации. Не обязательно верить в них, просто найди.", f:[{k:"alt",l:"Три других категории",ph:"Занята / не знает, что ответить / ждёт подходящего момента"}]},
+{t:"Примерь каждую", text:"По очереди посмотри на ситуацию через каждую новую категорию… Что меняется в теле, в чувствах, в желании действовать?", pause:1, f:[{k:"try",l:"Что заметил",ph:""}]},
+{t:"Экологическая проверка", text:"Какая категория кажется самой подходящей и полезной? Есть ли внутри возражения против того, чтобы смотреть на ситуацию так?", f:[{k:"eco",l:"Выбор и проверка",ph:""}]}
+]},
+{id:"like-important", title:"Нравится и важно", lesson:"scope-vs-category", mode:"Тройка или один", time:"20 мин",
+short:"Сравниваешь, как меняются ответы, жесты и взгляд, когда спрашивают «что нравится?» и «что важно?».",
+intro:"В книге упражнение для троих: А отвечает, Б спрашивает, В наблюдает. По 5 минут на каждый раунд и 5 минут на обсуждение. Если ты один, задавай себе вопросы и отвечай письменно, а потом сравни списки.",
+steps:[
+{t:"Тема", text:"А выбирает занятие, которое ему по-настоящему нравится: хобби, место, работа.", f:[{k:"topic",l:"Тема (X)",ph:"Походы в горы"}]},
+{t:"Раунд «Нравится»", text:"Б спрашивает: «Что тебе нравится в X?» На каждый ответ снова: «А что ещё тебе в этом нравится?» В отмечает, куда смотрит А, как звучит голос, что делают руки.", timer:300, f:[{k:"like",l:"Ответы (или заметки наблюдателя)",ph:"Запах хвои, хруст снега, усталость в ногах вечером…"}]},
+{t:"Раунд «Важно»", text:"Б спрашивает: «Чем для тебя важен X?» На каждый ответ: «А что ещё в этом важно?» В снова наблюдает.", timer:300, f:[{k:"imp",l:"Ответы (или заметки наблюдателя)",ph:"Свобода, ощущение силы, время с друзьями…"}]},
+{t:"Сравнение", text:"Положи два списка рядом. В первом списке детали опыта (диапазон). Во втором категории и ценности. Что ещё различалось: темп речи, жесты, направление взгляда?", timer:300, f:[{k:"diff",l:"Различия",ph:""}]},
+{t:"Вывод", text:"Как ты можешь использовать эти два вопроса в разговорах? Например, «что нравится» помогает оживить воспоминание, «что важно» помогает понять мотивацию.", f:[{k:"use",l:"Где применю",ph:""}]}
+]},
+{id:"scope-category-script", title:"Диапазон и категория вместе", lesson:"scope-change", mode:"Один или в паре", time:"20 мин",
+short:"Четыре способа изменить кадр и наблюдение за тем, какая категория рождается каждый раз.",
+intro:"Это упражнение соединяет первые два сценария. Каждый раз, когда меняешь диапазон, замечай, как ты теперь назвал бы ситуацию.",
+steps:[
+{t:"Ситуация и её имя", text:"Опиши ситуацию и категорию, в которую ты её сейчас кладёшь.", f:[{k:"sit",l:"Ситуация",ph:""},{k:"cat",l:"Нынешняя категория",ph:""}]},
+{t:"Больше", text:"Расширь диапазон во времени и пространстве… Какая категория подходит теперь?", pause:1, f:[{k:"big",l:"Новая категория при большом кадре",ph:""}]},
+{t:"Меньше", text:"Сузь до одной детали… Как назвать то, что ты видишь теперь?", pause:1, f:[{k:"small",l:"Категория при узком кадре",ph:""}]},
+{t:"Сдвиг", text:"Сдвинь кадр так, чтобы он частично перекрывался с прежним: чуть раньше, чуть позже, чуть в сторону…", pause:1, f:[{k:"shift",l:"Что изменилось",ph:""}]},
+{t:"Другой диапазон", text:"Возьми совсем другой отрезок из той же истории, о котором ты обычно не вспоминаешь…", pause:1, f:[{k:"other",l:"Что это за отрезок и как он меняет смысл",ph:""}]},
+{t:"Итог", text:"Какая пара «диапазон + категория» самая полезная? Сделай экологическую проверку.", f:[{k:"eco",l:"Итог и проверка",ph:""}]}
+]},
+{id:"aggregate", title:"Совокупный диапазон решения", lesson:"category-scope", mode:"Один", time:"15 мин", custom:"circles",
+short:"Раскладываешь все факторы решения вокруг центра и собираешь их в одну картинку.",
+intro:"Когда принимаешь решение, факторы обычно приходят в голову по очереди, и последний всегда кажется самым важным. Здесь ты собираешь их в одну картинку и смотришь на всё сразу."},
+{id:"criteria-builder", title:"Конструктор критериев", lesson:"criteria", mode:"Один", time:"10–15 мин", custom:"criteria",
+short:"Выписываешь критерии важной категории, отмечаешь их тип и расставляешь по важности.",
+intro:"Возьми категорию, которая для тебя важна: «хороший друг», «подходящая работа», «удачный день». Выпиши критерии, по которым ты решаешь, попадает ли что-то в эту категорию."},
+{id:"prototype-swap", title:"Замена прототипа", lesson:"prototype", mode:"Один", time:"10 мин",
+short:"Находишь пример, который окрашивает всю категорию, и пробуешь поставить в центр другой.",
+intro:"Подходит для слов, которые вызывают у тебя напряжение: «начальник», «отношения», «экзамен», «спорт».",
+steps:[
+{t:"Слово", text:"Какое слово (категория) вызывает у тебя неприятные чувства?", f:[{k:"w",l:"Категория",ph:"Начальник"}]},
+{t:"Что всплывает первым", text:"Скажи себе это слово и заметь, какой пример появился первым… Это и есть твой прототип. Какой он: типичный, яркий, идеал, стереотип?", pause:1, f:[{k:"p",l:"Прототип и его тип",ph:"Мой первый руководитель, яркий пример"}]},
+{t:"Другие примеры", text:"Вспомни ещё пять примеров этой категории из жизни, книг, фильмов. Постарайся найти разные.", f:[{k:"o",l:"Пять примеров",ph:""}]},
+{t:"Новый центр", text:"Выбери пример, который кажется более типичным или более полезным. Представь, что теперь он стоит в центре мишени, а старый прототип отодвинулся к краю…", pause:1, f:[{k:"n",l:"Новый прототип и что изменилось",ph:""}]},
+{t:"Проверка", text:"Произнеси слово снова. Что всплывает теперь? Есть ли возражения против новой картинки?", f:[{k:"c",l:"Проверка",ph:""}]}
+]},
+{id:"values-rank", title:"Иерархия ценностей в двух контекстах", lesson:"values", mode:"Один", time:"10 мин", custom:"values",
+short:"Расставляешь ценности по порядку для работы и для дома и видишь, где иерархия смещается.",
+intro:"Иерархия ценностей помогает быстро решать, но она статична. Упражнение показывает, как приоритеты меняются в зависимости от контекста."},
+{id:"significance", title:"Ответ в той же форме", lesson:"significance", mode:"Один или в паре", time:"10 мин",
+short:"Определяешь форму жалобы (X→Y, X=Y, X в Y) и строишь новую связь той же формы.",
+intro:"Возьми жалобу, которую ты слышишь часто, от себя или от других.",
+steps:[
+{t:"Жалоба", text:"Запиши фразу дословно.", f:[{k:"c",l:"Жалоба",ph:"Ты опять задержался, значит, тебе на меня плевать"}]},
+{t:"Форма", text:"Какая это форма? Причина и следствие (X заставляет Y), эквивалентность (X значит Y) или контекст (X в Y, слишком X для Y)?", f:[{k:"form",l:"Форма",sel:["Причина и следствие: X → Y","Эквивалентность: X = Y","Контекст: X в Y"]}]},
+{t:"Присоединение", text:"Повтори связь человека своими словами, показав, что ты её понял.", f:[{k:"pace",l:"Присоединение",ph:"Ты подумала, что моя задержка значит, что мне всё равно…"}]},
+{t:"Новая связь той же формы", text:"Предложи другую связь той же формы. Для эквивалентности: «X значит Z». Для причины: «X привело к Z». Для контекста: «в контексте W X выглядит иначе».", f:[{k:"new",l:"Новая связь",ph:""}]},
+{t:"Проверка", text:"Прочитай вслух. Звучит ли это правдиво для тебя? Если нет, найди вариант, в который ты сам веришь.", f:[{k:"chk",l:"Заметки",ph:""}]}
+]},
+{id:"model-world", title:"Генератор «модели мира»", lesson:"model-world", mode:"Один или в паре", time:"10 мин", custom:"model",
+short:"Вписываешь свою проблему, получаешь восемь фраз и проговариваешь их, замечая, как она становится мягче.",
+intro:"Сформулируй проблему в виде «Я человек, который…» или «У меня…». Затем проговори восемь фраз медленно, вслух, с паузой после каждой. В паре партнёр читает тебе их, а ты отвечаешь, что меняется."},
+{id:"judgment", title:"От суждения к предпочтению", lesson:"judgment", mode:"Один", time:"15 мин",
+short:"Переводишь «X плохой» в «мне Y нравится больше, чем X» и сравниваешь ощущения.",
+intro:"Выбери суждение о человеке, вещи или событии, которое ты часто повторяешь.",
+steps:[
+{t:"Суждение", text:"Запиши его в форме «X плохой (ужасный, неправильный)».", f:[{k:"j",l:"Суждение",ph:"Пробки в этом городе ужасны"}]},
+{t:"Как ты это видишь", text:"Заметь, как представлено суждение внутри: картинка, голос, ощущение. Где оно, какого размера, насколько громкое?…", pause:1, f:[{k:"jr",l:"Внутреннее представление",ph:""}]},
+{t:"Что лучше", text:"Что для тебя было бы лучше, чем X? Найди конкретный Y.", f:[{k:"y",l:"Y",ph:"Свободная дорога, по которой еду 20 минут"}]},
+{t:"Предпочтение", text:"Скажи: «Мне Y нравится больше, чем X». Проговори несколько раз…", pause:1, f:[{k:"p",l:"Фраза предпочтения",ph:""}]},
+{t:"Разница", text:"Сравни, как ощущаются суждение и предпочтение. Что изменилось в теле, в картинке, в желании действовать?", f:[{k:"diff",l:"Разница",ph:""}]},
+{t:"Другие люди", text:"Подумай о людях, у которых могут быть другие предпочтения в этом же вопросе. Как они могли бы это сказать?", f:[{k:"oth",l:"Другие предпочтения",ph:""}]},
+{t:"Действие", text:"Какой один шаг приближает тебя к Y?", f:[{k:"act",l:"Шаг",ph:""}]}
+]},
+{id:"self-ref", title:"Найди ссылку на себя", lesson:"self-reference", mode:"Один", time:"10 мин",
+short:"Разбираешь обвинение и проверяешь, не описывает ли оно самого обвиняющего.",
+intro:"Вспомни обвинение, которое ты слышал или произносил сам: «ты упрямый», «ты меня не слушаешь», «ты всё контролируешь».",
+steps:[
+{t:"Обвинение", text:"Запиши фразу и кто её сказал.", f:[{k:"a",l:"Фраза",ph:"«Ты вечно споришь!»"}]},
+{t:"Проверка на ссылку на себя", text:"Применима ли эта фраза к самому говорящему в момент, когда он её произносит? Является ли сама фраза примером того, о чём говорит?", f:[{k:"chk",l:"Что заметил",ph:"Он сам в этот момент спорил"}]},
+{t:"Какие отношения ты хочешь", text:"Прежде чем отвечать, реши: хочешь ли ты принять отношения, которые предлагает собеседник? Каковы риски, если указать на ссылку на себя?", f:[{k:"rel",l:"Мой выбор",ph:""}]},
+{t:"Ответ", text:"Сформулируй ответ, который показывает структуру без нападения. Например: «Похоже, каждый из нас хотел бы, чтобы другой согласился».", f:[{k:"ans",l:"Мой ответ",ph:""}]}
+]},
+{id:"reality", title:"Настоящее и вымышленное животное", lesson:"certainty", mode:"Один или в паре", time:"15–20 мин", custom:"reality",
+short:"Сравниваешь, чем образ реальной собаки отличается от образа дракона, и экспериментируешь.",
+intro:"Перед началом пообещай себе, что все изменения временные и в конце ты вернёшь образы на место. Это снимает лишнее беспокойство."},
+{id:"metaphor", title:"Поиск новых метафор", lesson:"metaphor", mode:"Группа или один", time:"5 мин на раунд", custom:"metaphor",
+short:"Берёшь категорию и случайный предмет, и за пять минут находишь, чем они похожи.",
+intro:"В книге упражнение для группы 3–6 человек. Один называет категорию, второй (не слыша первого) называет обычный предмет. Затем все ищут, чем категория похожа на предмет. Здесь предмет выбирает генератор."},
+{id:"forgiveness", title:"Структура прощения (лёгкая версия)", lesson:"forgiveness", mode:"Один", time:"20 мин",
+short:"Сравниваешь образы непрощённого и прощённого человека и пробуешь мягко сдвинуть первый.",
+intro:"Это учебная версия по мотивам сессии из главы 24. Возьми мелкую обиду: коллега не позвал на встречу, друг забыл о договорённости. С глубокими травмами лучше работать вместе со специалистом. Пообещай себе, что можешь в любой момент вернуть всё как было.",
+steps:[
+{t:"Зачем тебе прощение", text:"Прощение нужно тебе: чтобы ушли злость, чувство потери и желание отомстить. Прощение не означает, что поступок был хорошим, и не обязывает продолжать общение. Чего ты хочешь для себя?", f:[{k:"why",l:"Что я хочу получить",ph:""}]},
+{t:"Непрощённый", text:"Подумай о человеке, которого ты пока не простил. Где находится его образ? Какого размера, как далеко, какой голос, цвет, движение?", pause:1, f:[{k:"u",l:"Где и какой образ",ph:"Справа, метра три, в полный рост, говорит резко"}]},
+{t:"Прощённый", text:"Теперь подумай о человеке, которого ты когда-то простил. Где его образ? Сравни: расстояние, размер, голос, свет…", pause:1, f:[{k:"f",l:"Где и какой образ",ph:"Слева рядом, ниже уровня глаз, голос мягкий"}]},
+{t:"Возражения", text:"Спроси себя: есть ли во мне часть, которая против прощения этого человека? Что она хочет защитить? Каждое возражение запиши. Это информация, и её нужно учесть (например, «я хочу помнить урок, чтобы не повторить ошибку»).", f:[{k:"obj",l:"Возражения и как их учесть",ph:""}]},
+{t:"Мягкий сдвиг", text:"Если возражения учтены, попробуй медленно переместить образ непрощённого туда, где находится прощённый, и придать ему похожие качества… Двигайся настолько, насколько комфортно.", pause:1, f:[{k:"move",l:"Что произошло",ph:""}]},
+{t:"Проверка", text:"Подумай об этом человеке сейчас. Что изменилось? Как это скажется на твоих будущих встречах с ним? Если что-то не так, верни образ на прежнее место.", f:[{k:"chk",l:"Проверка",ph:""}]}
+]}
+];
+
+/* ================= DATA: TRAINER ================= */
+const DRILLS = {
+scopecat:{title:"Диапазон или категория?", lesson:"scope-vs-category", items:[
+{t:"Последние десять минут нашего разговора",a:"s",e:"Отрезок времени, часть сенсорного опыта."},
+{t:"Этот разговор как пример ссоры",a:"c",e:"Событие рассматривается как пример группы «ссоры»."},
+{t:"Левое заднее колесо моей машины",a:"s",e:"Часть конкретного предмета."},
+{t:"Моя машина как пример транспорта",a:"c",e:"Предмет как представитель категории."},
+{t:"Кухня в моей квартире",a:"s",e:"Часть пространства."},
+{t:"Он из тех, кто всегда опаздывает",a:"c",e:"Человек отнесён к группе."},
+{t:"Тёплый песок и шум волн в отпуске",a:"s",e:"Сенсорные детали опыта."},
+{t:"Отпуск для меня это свобода",a:"c",e:"Отпуск отнесён к категории-ценности."},
+{t:"Первая неделя на новой работе",a:"s",e:"Конкретный отрезок времени."},
+{t:"Это был провал",a:"c",e:"Событие отнесено к категории «провал»."},
+{t:"Его голос в тот момент, когда он сказал «нет»",a:"s",e:"Конкретный фрагмент звукового опыта."},
+{t:"Типичный понедельник",a:"c",e:"Обобщённый пример группы понедельников."}
+], opts:[["s","Диапазон"],["c","Категория"]]},
+forms:{title:"Какая форма смысла?", lesson:"significance", items:[
+{t:"Твоё молчание означает, что ты обиделся",a:"eq",e:"X = Y: молчание приравнено к обиде."},
+{t:"Из-за твоего тона у меня портится настроение",a:"ce",e:"X → Y: тон назван причиной."},
+{t:"Я слишком стар для этой работы",a:"cx",e:"X в Y: качество оценивается относительно контекста."},
+{t:"Раз ты не позвонил, тебе всё равно",a:"eq",e:"X = Y: отсутствие звонка значит безразличие."},
+{t:"Твоя критика заставляет меня сомневаться в себе",a:"ce",e:"X → Y: причина и следствие."},
+{t:"На свадьбе так не одеваются",a:"cx",e:"X в Y: поведение в контексте."},
+{t:"Он опоздал, он безответственный",a:"eq",e:"X = Y: эквивалентность события и черты."},
+{t:"Дождь испортил мне весь день",a:"ce",e:"X → Y: дождь назван причиной."}
+], opts:[["ce","X → Y"],["eq","X = Y"],["cx","X в Y"]]},
+modal:{title:"Модальные операторы", lesson:"qualifiers", items:[
+{t:"Мне надо закончить отчёт",a:"n",e:"«Надо»: необходимость."},
+{t:"Хочу поехать к морю",a:"d",e:"«Хочу»: желание."},
+{t:"Я могу попросить о помощи",a:"p",e:"«Могу»: возможность."},
+{t:"Я решаю остаться дома",a:"c",e:"«Решаю»: выбор."},
+{t:"Я обязан ответить сегодня",a:"n",e:"«Обязан»: необходимость."},
+{t:"Мне бы хотелось больше спать",a:"d",e:"«Хотелось бы»: желание."},
+{t:"Это вполне получится сделать к пятнице",a:"p",e:"«Получится»: возможность."},
+{t:"Я предпочитаю пешие прогулки",a:"c",e:"«Предпочитаю»: выбор."}
+], opts:[["d","Желание"],["n","Необходимость"],["p","Возможность"],["c","Выбор"]]},
+paradox:{title:"Выход из парадокса", lesson:"paradox", items:[
+{t:"Исходное: «Я всегда лгу». Вариант: «Иногда я говорю неправду».",a:"lim",e:"Абсолют «всегда» ограничен до «иногда»."},
+{t:"Исходное: «Это утверждение ложно». Вариант: «Утверждение на соседней странице ложно».",a:"self",e:"Фраза больше не говорит о себе."},
+{t:"Исходное: «Я никогда не принимаю решений». Вариант: «Я принимаю решения медленно и долго взвешиваю».",a:"neg",e:"Утверждение сказано без отрицания."},
+{t:"Исходное: «Все обобщения ложны». Вариант: «Многие обобщения неточны».",a:"lim",e:"«Все» заменено на «многие»."},
+{t:"Исходное: «Не слушай никаких советов». Вариант: «Проверяй советы на своём опыте».",a:"neg",e:"Совет переформулирован позитивно."},
+{t:"Исходное: «Эта фраза мне не нравится». Вариант: «Мне не нравится то, что ты сказал вчера».",a:"self",e:"Убрана ссылка на саму фразу."}
+], opts:[["lim","Ограничить"],["self","Убрать ссылку на себя"],["neg","Убрать отрицание"]]}
+};
+const NEGATIVES = [
+{t:"Не опаздывай завтра",s:"Приходи завтра к 9:00"},
+{t:"Не хочу больше ссориться",s:"Хочу говорить спокойно, даже когда мы не согласны"},
+{t:"Не бойся выступления",s:"Дыши медленно и смотри на дружелюбные лица в зале"},
+{t:"Не забудь купить хлеб",s:"Запомни: хлеб, по дороге домой"},
+{t:"Я не хочу быть таким ленивым",s:"Хочу каждый день делать хотя бы 20 минут важной работы"},
+{t:"Не беги по лестнице",s:"Иди по лестнице шагом и держись за перила"},
+{t:"Хорошая идея, но дорого",s:"Хорошая идея, и давай посмотрим, как уложиться в бюджет"},
+{t:"Не отвлекайся на телефон",s:"Положи телефон в другую комнату на час работы"}
+];
+const LEVEL_SETS = [
+["Живое существо","Животное","Млекопитающее","Собака","Такса","Моя такса Рыжик"],
+["Искусство","Музыка","Классическая музыка","Симфония","Пятая симфония Бетховена"],
+["Транспорт","Наземный транспорт","Автомобиль","Седан","Моя серая машина"],
+["Еда","Фрукты","Яблоко","Антоновка","Это яблоко на столе"],
+["Деятельность","Спорт","Командный спорт","Футбол","Вчерашний матч во дворе"]
+];
+const MANGO = {words:["Я","не","люблю","зелёное","манго"], hint:[
+"Я не люблю. А кто-то другой, может, и любит.",
+"Подчёркнуто отрицание: спорю с тем, кто думает, что люблю.",
+"Не люблю, но, может быть, ем или терплю.",
+"Зелёное не люблю. Спелое, может, и люблю.",
+"Манго не люблю. Другие зелёные фрукты, может, нравятся."]};
+const OBJECTS = ["зонт","чайник","скрепка","лестница","ключ","свеча","карта города","мост","рюкзак","часы","садовый шланг","фонарик","зеркало","подушка","компас","ножницы","пазл","велосипед","лифт","кактус","кастрюля","окно","якорь","клубок ниток","светофор","батарейка","губка","дверная ручка","парашют","термос"];
+
+/* ================= DATA: GLOSSARY ================= */
+const GLOSSARY = [
+["Диапазон","Часть сенсорного опыта во времени и пространстве. То, что можно показать или поставить на таймлайн.","scope"],
+["Категория","Группа примеров, объединённых по критериям. Членство дискретно: да или нет.","category"],
+["Индукция","Обобщение: объединение похожих случаев в категорию.","category"],
+["Различение","Исключение из категории того, что сильно отличается.","category"],
+["Прототип","Пример, который мозг подставляет вместо всей категории.","prototype"],
+["Радиальная структура","Устройство категории: прототип в центре, менее типичные члены по краям.","prototype"],
+["Критерий","Признак, по которому опыт попадает в категорию.","criteria"],
+["Порог","Точка, где аналоговый критерий превращается в дискретный.","criteria"],
+["Логические уровни","Лестница категорий от частных к общим.","levels"],
+["Наследственность","Свойства общей категории верны и для входящих в неё.","levels"],
+["Сужение","Нижняя категория добавляет критерий, и круг членов уменьшается.","levels"],
+["Экологическая проверка","Проверка, как изменение скажется на других сферах жизни.","scope"],
+["Выведенный диапазон","То, что мы дорисовываем по критериям категории, не воспринимая напрямую.","category-scope"],
+["Совокупный диапазон","Связь события со всеми примерами категории и её прототипом.","category-scope"],
+["Оценочное чувство","Чувство «нравится / не нравится», критерий ценности.","values"],
+["Гетерархия","Система, где управление переходит к той части, у которой есть срочная информация.","hierarchy"],
+["Значимость","Смысл, построенный через причину, эквивалентность или контекст.","significance"],
+["Рефрейминг","Любое вмешательство, которое меняет диапазон, категорию или оба.","significance"],
+["Нормализация","Показ того, что реакция обычна для большинства людей в такой ситуации.","recat-same"],
+["Позитивное намерение","Допущение, что за любым поведением стоит полезное для человека намерение.","recat-higher"],
+["Подтекст","То, что сказано без прямых слов, через пары противоположностей.","model-world"],
+["Мета-сообщение","Невербальный сигнал, который категоризирует всё высказывание.","negation"],
+["Модальный оператор","Слово желания, необходимости, возможности или выбора.","qualifiers"],
+["Ссылка на себя","Сообщение, которое попадает в ту же категорию, о которой говорит.","self-reference"],
+["Парадокс","Абсолютное утверждение со ссылкой на себя и отрицанием.","paradox"],
+["Стратегия реальности","Способ отличать реальное от вымышленного по характеристикам образов.","certainty"],
+["Двойная связка","Ситуация, где любой выбор ведёт к проигрышу (или к выигрышу).","double-bind"],
+["Синекдоха","Часть вместо целого или пример вместо категории.","metaphor"],
+["Метонимия","Ассоциация вместо целого: «билет» вместо путешествия.","metaphor"]
+];
+
+/* ================= FIGURES (SVG) ================= */
+const C={t:"#37e0c0",o:"#ff8a4c",v:"#a98bff",p:"#ff5c9a",l:"#d4f45a",b:"#4cb2ff",line:"#323a4e",pl:"#171b25"};
+const tx=(x,y,s,cls="svg-t",anchor="middle")=>`<text x="${x}" y="${y}" class="${cls}" text-anchor="${anchor}">${s}</text>`;
+const svg=(w,h,inner)=>`<svg viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg" role="img">${inner}</svg>`;
+const arrowDef=(id,col)=>`<defs><marker id="${id}" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="${col}"/></marker></defs>`;
+
+const FIG = {
+scopeRelations:{cap:"Три возможных отношения между двумя диапазонами.", s:()=>svg(680,220,`
+<g><circle cx="113" cy="100" r="70" fill="${C.t}" fill-opacity=".1" stroke="${C.t}" stroke-width="2"/><circle cx="128" cy="112" r="32" fill="${C.l}" fill-opacity=".15" stroke="${C.l}" stroke-width="2"/>${tx(113,200,"Вложенный","svg-h")}${tx(113,48,"вечер","svg-s")}${tx(128,116,"ссора","svg-s")}</g>
+<g><circle cx="290" cy="100" r="48" fill="${C.o}" fill-opacity=".1" stroke="${C.o}" stroke-width="2"/><circle cx="400" cy="100" r="48" fill="${C.v}" fill-opacity=".1" stroke="${C.v}" stroke-width="2"/>${tx(345,200,"Раздельные","svg-h")}${tx(290,104,"вторник","svg-s")}${tx(400,104,"пятница","svg-s")}</g>
+<g><circle cx="535" cy="100" r="55" fill="${C.b}" fill-opacity=".1" stroke="${C.b}" stroke-width="2"/><circle cx="605" cy="100" r="55" fill="${C.p}" fill-opacity=".1" stroke="${C.p}" stroke-width="2"/>${tx(570,200,"Пересекающиеся","svg-h")}${tx(570,104,"общее","svg-s")}${tx(515,104,"мой","svg-s")}${tx(628,104,"его","svg-s")}</g>`)},
+
+zoom:{cap:"Один и тот же момент в трёх кадрах разного размера. Чем шире кадр, тем больше причин и последствий попадает в поле зрения.", s:()=>svg(680,170,`
+<line x1="20" y1="120" x2="660" y2="120" stroke="${C.line}" stroke-width="2"/>
+<rect x="40" y="70" width="600" height="80" rx="10" fill="${C.v}" fill-opacity=".07" stroke="${C.v}" stroke-dasharray="5 4"/>
+<rect x="200" y="82" width="280" height="56" rx="9" fill="${C.b}" fill-opacity=".08" stroke="${C.b}"/>
+<rect x="315" y="94" width="50" height="32" rx="7" fill="${C.l}" fill-opacity=".18" stroke="${C.l}" stroke-width="2"/>
+<circle cx="340" cy="120" r="5" fill="${C.l}"/>
+${tx(340,60,"узкий: одна фраза","svg-s")}${tx(340,40,"средний: вся встреча","svg-s")}${tx(340,22,"широкий: весь год работы вместе","svg-s")}
+<path d="M340 64 V90" stroke="${C.l}" stroke-width="1.5"/><path d="M250 44 L250 80" stroke="${C.b}" stroke-width="1.5"/><path d="M120 26 L120 68" stroke="${C.v}" stroke-width="1.5"/>
+${tx(30,165,"прошлое","svg-s","start")}${tx(650,165,"будущее","svg-s","end")}`)},
+
+induction:{cap:"Обобщение собирает похожие случаи в группу. Различение выводит за её границу то, что сильно отличается.", s:()=>svg(680,210,`
+${arrowDef("a1",C.t)}
+<g fill="${C.t}">${[[60,60],[95,110],[50,150],[130,70],[140,150],[90,180]].map(([x,y])=>`<circle cx="${x}" cy="${y}" r="9" fill-opacity=".8"/>`).join("")}</g>
+<circle cx="200" cy="40" r="9" fill="${C.p}"/>
+<path d="M200 110 H300" stroke="${C.t}" stroke-width="2" marker-end="url(#a1)"/>${tx(250,100,"обобщение","svg-s")}
+<ellipse cx="430" cy="110" rx="105" ry="80" fill="${C.t}" fill-opacity=".08" stroke="${C.t}" stroke-width="2"/>
+<g fill="${C.t}">${[[390,80],[440,70],[470,110],[400,135],[450,150],[420,105]].map(([x,y])=>`<circle cx="${x}" cy="${y}" r="9" fill-opacity=".8"/>`).join("")}</g>
+${tx(430,205,"категория «собаки»","svg-h")}
+<circle cx="610" cy="60" r="9" fill="${C.p}"/>${tx(610,90,"кошка","svg-s")}${tx(610,108,"за границей","svg-s")}
+<path d="M540 80 L595 64" stroke="${C.p}" stroke-dasharray="4 4" stroke-width="1.5"/>${tx(565,52,"различение","svg-s")}`)},
+
+discrete:{cap:"Оттенки меняются плавно, а слова «тёплый» и «горячий» делят шкалу порогом. Где он стоит, каждый решает сам.", s:()=>svg(680,150,`
+<defs><linearGradient id="gtemp" x1="0" x2="1"><stop offset="0" stop-color="${C.b}"/><stop offset=".5" stop-color="${C.l}"/><stop offset="1" stop-color="${C.p}"/></linearGradient></defs>
+<rect x="30" y="50" width="620" height="28" rx="14" fill="url(#gtemp)"/>
+<line x1="250" y1="34" x2="250" y2="94" stroke="#eceef4" stroke-width="2" stroke-dasharray="4 3"/>
+<line x1="450" y1="34" x2="450" y2="94" stroke="#eceef4" stroke-width="2" stroke-dasharray="4 3"/>
+${tx(140,118,"прохладный","svg-h")}${tx(350,118,"тёплый","svg-h")}${tx(550,118,"горячий","svg-h")}
+${tx(340,26,"аналоговый опыт","svg-s")}${tx(250,140,"порог","svg-s")}${tx(450,140,"порог","svg-s")}`)},
+
+radial:{cap:"Категория «птицы» как мишень. В центре прототип, к краям менее типичные члены.", s:()=>svg(680,300,`
+${[130,95,60].map((r,i)=>`<circle cx="340" cy="150" r="${r}" fill="${C.v}" fill-opacity="${.05+i*.05}" stroke="${C.v}" stroke-opacity=".5"/>`).join("")}
+<circle cx="340" cy="150" r="26" fill="${C.l}" fill-opacity=".25" stroke="${C.l}" stroke-width="2"/>${tx(340,155,"воробей","svg-h")}
+${tx(340,108,"голубь","svg-t")}${tx(390,190,"ворона","svg-t")}${tx(280,180,"синица","svg-t")}
+${tx(250,90,"курица","svg-t")}${tx(430,96,"утка","svg-t")}
+${tx(220,250,"пингвин","svg-t")}${tx(470,252,"страус","svg-t")}${tx(340,42,"киви","svg-t")}
+${tx(600,80,"прототип в центре","svg-s")}${tx(600,230,"края: «птица, но…»","svg-s")}
+<path d="M530 84 L372 140" stroke="${C.l}" stroke-dasharray="3 4"/>`)},
+
+threshold:{cap:"Аналоговый критерий «время в пути» с порогом в 40 минут превращается в дискретное «подходит / не подходит».", s:()=>svg(680,150,`
+<line x1="40" y1="70" x2="640" y2="70" stroke="${C.line}" stroke-width="6" stroke-linecap="round"/>
+<line x1="40" y1="70" x2="400" y2="70" stroke="${C.t}" stroke-width="6" stroke-linecap="round"/>
+<line x1="400" y1="70" x2="640" y2="70" stroke="${C.p}" stroke-width="6" stroke-linecap="round" stroke-opacity=".6"/>
+<circle cx="400" cy="70" r="11" fill="#0a0c11" stroke="#eceef4" stroke-width="2"/>
+${tx(40,50,"10 мин","svg-s","start")}${tx(400,40,"40 мин · порог","svg-h")}${tx(640,50,"90 мин","svg-s","end")}
+${tx(220,105,"подходит","svg-h")}${tx(520,105,"не подходит","svg-h")}`)},
+
+tree:{cap:"Чем выше, тем общее категория. Свойства передаются вниз (наследственность), критерии добавляются вниз (сужение).", s:()=>{
+const lv=[["Животное",C.v],["Млекопитающее",C.b],["Собака",C.t],["Рекс",C.l]];
+return svg(680,300,`${arrowDef("a2","#828aa0")}`+lv.map(([n,c],i)=>{const w=300-i*55,x=200-w/2+60,y=20+i*68;return `<rect x="${x}" y="${y}" width="${w}" height="44" rx="12" fill="${c}" fill-opacity=".12" stroke="${c}" stroke-width="1.8"/>${tx(x+w/2,y+28,n,"svg-h")}`}).join("")+
+`<path d="M470 40 V250" stroke="${C.t}" stroke-width="2" marker-end="url(#a2)"/>${tx(490,140,"наследственность","svg-t","start")}${tx(490,160,"свойства идут вниз","svg-s","start")}
+<path d="M600 250 V40" stroke="${C.o}" stroke-width="2" marker-end="url(#a2)"/>${tx(590,290,"общее ↑","svg-s","end")}${tx(490,200,"сужение: каждый шаг","svg-s","start")}${tx(490,216,"вниз добавляет критерий","svg-s","start")}`)}},
+
+partVsKind:{cap:"Слева деление на части (диапазон). Справа место в группе (категория).", s:()=>svg(680,230,`
+<rect x="30" y="20" width="300" height="190" rx="16" fill="${C.t}" fill-opacity=".05" stroke="${C.t}" stroke-opacity=".5"/>
+${tx(180,46,"Диапазон: часть и целое","svg-h")}
+<rect x="80" y="80" width="200" height="60" rx="16" fill="none" stroke="${C.t}" stroke-width="2"/>
+<circle cx="125" cy="150" r="20" fill="${C.l}" fill-opacity=".25" stroke="${C.l}" stroke-width="2"/><circle cx="235" cy="150" r="20" fill="none" stroke="${C.t}" stroke-width="2"/>
+${tx(125,195,"это колесо","svg-s")}${tx(180,115,"эта машина","svg-t")}
+<rect x="350" y="20" width="300" height="190" rx="16" fill="${C.v}" fill-opacity=".05" stroke="${C.v}" stroke-opacity=".5"/>
+${tx(500,46,"Категория: вид и группа","svg-h")}
+<ellipse cx="500" cy="130" rx="125" ry="62" fill="${C.v}" fill-opacity=".08" stroke="${C.v}" stroke-dasharray="6 4"/>
+${tx(500,100,"транспорт","svg-s")}
+<rect x="410" y="115" width="52" height="26" rx="8" fill="${C.l}" fill-opacity=".25" stroke="${C.l}"/>${tx(436,133,"машина","svg-s")}
+<rect x="475" y="125" width="52" height="26" rx="8" fill="none" stroke="${C.v}"/>${tx(501,143,"поезд","svg-s")}
+<rect x="540" y="113" width="52" height="26" rx="8" fill="none" stroke="${C.v}"/>${tx(566,131,"самолёт","svg-s")}`)},
+
+fourWays:{cap:"Две независимые оси: размер диапазона и уровень категории. «Укрупнение» в НЛП смешивало верхнюю и правую стрелки.", s:()=>svg(680,300,`
+${arrowDef("a3",C.t)}${arrowDef("a4",C.v)}
+<line x1="340" y1="150" x2="340" y2="40" stroke="${C.v}" stroke-width="2.5" marker-end="url(#a4)"/>
+<line x1="340" y1="150" x2="340" y2="260" stroke="${C.v}" stroke-width="2.5" marker-end="url(#a4)"/>
+<line x1="340" y1="150" x2="530" y2="150" stroke="${C.t}" stroke-width="2.5" marker-end="url(#a3)"/>
+<line x1="340" y1="150" x2="150" y2="150" stroke="${C.t}" stroke-width="2.5" marker-end="url(#a3)"/>
+<circle cx="340" cy="150" r="8" fill="${C.l}"/>
+${tx(340,28,"категория общее: «отдых»","svg-h")}${tx(340,285,"категория конкретнее: «пляжный отдых в Крыму»","svg-h")}
+${tx(600,146,"диапазон шире:","svg-h")}${tx(600,164,"весь отпуск","svg-s")}
+${tx(80,146,"диапазон уже:","svg-h")}${tx(80,164,"первый вечер","svg-s")}
+${tx(400,140,"«мой отпуск»","svg-s","start")}`)},
+
+scopeChanges:{cap:"Пунктир показывает исходный диапазон, сплошная рамка показывает новый.", s:()=>{
+const box=(x,lab,nx,ny,nw,nh,c)=>`<g><rect x="${x+40}" y="50" width="80" height="60" rx="8" fill="none" stroke="#828aa0" stroke-dasharray="4 3"/><rect x="${x+nx}" y="${ny}" width="${nw}" height="${nh}" rx="8" fill="${c}" fill-opacity=".12" stroke="${c}" stroke-width="2"/>${tx(x+80,150,lab,"svg-h")}</g>`;
+return svg(680,165,box(0,"Больше",15,28,130,104,C.t)+box(170,"Меньше",62,64,36,32,C.l)+box(340,"Сдвиг",80,36,80,60,C.o)+box(510,"Другой",42,10,40,30,C.p))}},
+
+threeScopes:{cap:"Видим кусочек хвоста, а категория «собака» дорисовывает остальное и связывает с остальными собаками.", s:()=>svg(680,230,`
+<rect x="20" y="30" width="200" height="170" rx="16" fill="${C.t}" fill-opacity=".06" stroke="${C.t}"/>${tx(120,22,"обозримый","svg-h")}
+<path d="M100 150 q20 -60 40 -20" stroke="${C.l}" stroke-width="5" fill="none" stroke-linecap="round"/><rect x="30" y="130" width="180" height="10" fill="${C.line}"/>${tx(120,185,"видно: кончик хвоста","svg-s")}
+<rect x="240" y="30" width="200" height="170" rx="16" fill="${C.b}" fill-opacity=".06" stroke="${C.b}"/>${tx(340,22,"выведенный","svg-h")}
+<ellipse cx="340" cy="110" rx="55" ry="30" fill="none" stroke="${C.b}" stroke-dasharray="5 4" stroke-width="2"/><circle cx="395" cy="90" r="16" fill="none" stroke="${C.b}" stroke-dasharray="5 4" stroke-width="2"/>${[305,325,355,375].map(x=>`<line x1="${x}" y1="138" x2="${x}" y2="160" stroke="${C.b}" stroke-dasharray="4 3" stroke-width="2"/>`).join("")}${tx(340,185,"дорисовано: тело, лапы, лай","svg-s")}
+<rect x="460" y="30" width="200" height="170" rx="16" fill="${C.v}" fill-opacity=".06" stroke="${C.v}"/>${tx(560,22,"совокупный","svg-h")}
+${[[520,80],[600,75],[540,130],[610,140],[565,105]].map(([x,y],i)=>`<circle cx="${x}" cy="${y}" r="${i==4?14:9}" fill="${i==4?C.l:C.v}" fill-opacity="${i==4?.4:.5}"/>`).join("")}${tx(560,185,"связь со всеми собаками","svg-s")}`)},
+
+feelings:{cap:"Чувства восприятия сообщают, что происходит. Оценочные чувства сообщают, хорошо ли это для нас.", s:()=>svg(680,170,`
+<rect x="30" y="30" width="290" height="110" rx="16" fill="${C.b}" fill-opacity=".07" stroke="${C.b}"/>${tx(175,62,"Чувства восприятия","svg-h")}${tx(175,90,"тепло · давление · звук","svg-t")}${tx(175,114,"факты","svg-s")}
+<rect x="360" y="30" width="290" height="110" rx="16" fill="${C.p}" fill-opacity=".07" stroke="${C.p}"/>${tx(505,62,"Оценочные чувства","svg-h")}${tx(505,90,"нравится · не нравится","svg-t")}${tx(505,114,"важность для меня (уровнем выше)","svg-s")}
+<path d="M320 85 H360" stroke="#828aa0" stroke-width="2"/>`)},
+
+heterarchy:{cap:"Слева иерархия: управление всегда сверху. Справа гетерархия: ведёт тот узел, у которого сейчас срочная информация.", s:()=>{
+const pts=[[490,50],[600,90],[600,180],[490,215],[400,135]];
+return svg(680,250,`
+<circle cx="150" cy="40" r="18" fill="${C.o}" fill-opacity=".3" stroke="${C.o}" stroke-width="2"/>
+${[[90,120],[210,120]].map(([x,y])=>`<line x1="150" y1="58" x2="${x}" y2="${y-18}" stroke="${C.line}" stroke-width="2"/><circle cx="${x}" cy="${y}" r="16" fill="${C.o}" fill-opacity=".15" stroke="${C.o}"/>`).join("")}
+${[[60,195],[120,195],[180,195],[240,195]].map(([x,y],i)=>`<line x1="${i<2?90:210}" y1="136" x2="${x}" y2="${y-14}" stroke="${C.line}" stroke-width="2"/><circle cx="${x}" cy="${y}" r="13" fill="${C.o}" fill-opacity=".1" stroke="${C.o}"/>`).join("")}
+${tx(150,240,"иерархия","svg-h")}
+${pts.map((a,i)=>pts.slice(i+1).map(b=>`<line x1="${a[0]}" y1="${a[1]}" x2="${b[0]}" y2="${b[1]}" stroke="${C.line}" stroke-width="1.5"/>`).join("")).join("")}
+${pts.map(([x,y],i)=>`<circle cx="${x}" cy="${y}" r="${i==1?22:15}" fill="${i==1?C.l:C.t}" fill-opacity="${i==1?.35:.15}" stroke="${i==1?C.l:C.t}" stroke-width="2"/>`).join("")}
+${tx(600,95,"!","svg-h")}${tx(510,245,"гетерархия","svg-h")}`)}},
+
+threeForms:{cap:"Три молекулы смысла. Из них состоит почти любая жалоба и любое убеждение.", s:()=>svg(680,180,`
+${arrowDef("a5",C.o)}
+<rect x="20" y="40" width="200" height="100" rx="16" fill="${C.o}" fill-opacity=".07" stroke="${C.o}"/>${tx(120,30,"причина и следствие","svg-h")}
+<circle cx="70" cy="90" r="22" fill="none" stroke="${C.o}" stroke-width="2"/>${tx(70,95,"X","svg-h")}<circle cx="170" cy="90" r="22" fill="none" stroke="${C.o}" stroke-width="2"/>${tx(170,95,"Y","svg-h")}<path d="M94 90 H143" stroke="${C.o}" stroke-width="2" marker-end="url(#a5)"/>${tx(120,165,"X заставляет Y","svg-s")}
+<rect x="240" y="40" width="200" height="100" rx="16" fill="${C.v}" fill-opacity=".07" stroke="${C.v}"/>${tx(340,30,"эквивалентность","svg-h")}
+<circle cx="290" cy="90" r="22" fill="none" stroke="${C.v}" stroke-width="2"/>${tx(290,95,"X","svg-h")}<circle cx="390" cy="90" r="22" fill="none" stroke="${C.v}" stroke-width="2"/>${tx(390,95,"Y","svg-h")}${tx(340,98,"=","svg-h")}${tx(340,165,"X значит Y","svg-s")}
+<rect x="460" y="40" width="200" height="100" rx="16" fill="${C.t}" fill-opacity=".07" stroke="${C.t}"/>${tx(560,30,"контекст","svg-h")}
+<rect x="490" y="55" width="140" height="70" rx="14" fill="none" stroke="${C.t}" stroke-width="2" stroke-dasharray="5 4"/>${tx(612,72,"Y","svg-h")}<circle cx="545" cy="95" r="20" fill="none" stroke="${C.t}" stroke-width="2"/>${tx(545,100,"X","svg-h")}${tx(560,165,"X внутри Y","svg-s")}`)},
+
+lateral:{cap:"Рекатегоризация на том же уровне: событие переезжает на соседнюю полку с другими следствиями.", s:()=>svg(680,200,`
+${arrowDef("a6",C.l)}
+<rect x="250" y="20" width="180" height="40" rx="12" fill="${C.v}" fill-opacity=".1" stroke="${C.v}"/>${tx(340,45,"оценка ситуации","svg-h")}
+<rect x="90" y="110" width="180" height="44" rx="12" fill="${C.p}" fill-opacity=".1" stroke="${C.p}"/>${tx(180,137,"неудача","svg-h")}
+<rect x="410" y="110" width="180" height="44" rx="12" fill="${C.t}" fill-opacity=".12" stroke="${C.t}"/>${tx(500,137,"обратная связь","svg-h")}
+<line x1="300" y1="60" x2="200" y2="110" stroke="${C.line}" stroke-width="2"/><line x1="380" y1="60" x2="480" y2="110" stroke="${C.line}" stroke-width="2"/>
+<path d="M275 132 H400" stroke="${C.l}" stroke-width="2.5" marker-end="url(#a6)"/>
+${tx(180,180,"точка, конец","svg-s")}${tx(500,180,"урок, следующий шаг","svg-s")}`)},
+
+upward:{cap:"Шаг вверх даёт событию новых соседей и новые критерии.", s:()=>svg(680,220,`
+${arrowDef("a7",C.l)}
+<rect x="190" y="20" width="300" height="46" rx="12" fill="${C.t}" fill-opacity=".12" stroke="${C.t}"/>${tx(340,49,"способы беречь ценное","svg-h")}
+${[["ревность",110,C.p],["забота",270,C.t],["внимание",430,C.t],["верность",590,C.t]].map(([n,x,c])=>`<rect x="${x-62}" y="140" width="124" height="40" rx="11" fill="${c}" fill-opacity=".1" stroke="${c}"/>${tx(x,165,n,"svg-t")}<line x1="${x}" y1="140" x2="340" y2="66" stroke="${C.line}" stroke-width="1.5"/>`).join("")}
+<path d="M90 135 Q60 90 185 50" fill="none" stroke="${C.l}" stroke-width="2.5" marker-end="url(#a7)"/>${tx(40,100,"шаг вверх","svg-s","start")}`)},
+
+implication:{cap:"Слушатель сам достраивает вторую половину пары.", s:()=>svg(680,140,`
+<rect x="40" y="30" width="270" height="70" rx="14" fill="${C.v}" fill-opacity=".1" stroke="${C.v}"/>${tx(175,62,"«сегодня ты вовремя»","svg-h")}${tx(175,84,"сказано","svg-s")}
+<rect x="370" y="30" width="270" height="70" rx="14" fill="none" stroke="${C.p}" stroke-dasharray="6 4"/>${tx(505,62,"обычно ты опаздываешь","svg-h")}${tx(505,84,"не сказано, но услышано","svg-s")}
+<path d="M310 65 H370" stroke="#828aa0" stroke-width="2" stroke-dasharray="3 3"/>`)},
+
+negation:{cap:"Чтобы понять отрицание, сначала нужно создать образ. Потом его зачёркивают, но он уже был.", s:()=>svg(680,170,`
+${arrowDef("a8","#828aa0")}
+<rect x="40" y="30" width="170" height="110" rx="16" fill="${C.pl}" stroke="${C.line}"/>${tx(125,24,"1. услышал","svg-s")}${tx(125,92,"«не думай…»","svg-h")}
+<path d="M215 85 H255" stroke="#828aa0" stroke-width="2" marker-end="url(#a8)"/>
+<rect x="260" y="30" width="170" height="110" rx="16" fill="${C.l}" fill-opacity=".1" stroke="${C.l}"/>${tx(345,24,"2. представил","svg-s")}<circle cx="345" cy="85" r="28" fill="${C.l}" fill-opacity=".3"/>${tx(345,90,"обезьяна","svg-s")}
+<path d="M435 85 H475" stroke="#828aa0" stroke-width="2" marker-end="url(#a8)"/>
+<rect x="480" y="30" width="170" height="110" rx="16" fill="${C.p}" fill-opacity=".07" stroke="${C.p}"/>${tx(565,24,"3. зачеркнул","svg-s")}<circle cx="565" cy="85" r="28" fill="${C.l}" fill-opacity=".15"/><line x1="535" y1="55" x2="595" y2="115" stroke="${C.p}" stroke-width="4"/>`)},
+
+judgment:{cap:"Суждение: одна вещь и бинарная оценка. Предпочтение: два варианта на шкале и указание, чьё это мнение.", s:()=>svg(680,170,`
+<rect x="30" y="30" width="260" height="110" rx="16" fill="${C.p}" fill-opacity=".07" stroke="${C.p}"/>${tx(160,22,"суждение","svg-h")}<circle cx="160" cy="80" r="26" fill="${C.p}" fill-opacity=".3"/>${tx(160,85,"X","svg-h")}${tx(160,128,"«X плохой»","svg-t")}
+<rect x="330" y="30" width="320" height="110" rx="16" fill="${C.t}" fill-opacity=".07" stroke="${C.t}"/>${tx(490,22,"предпочтение","svg-h")}
+<line x1="360" y1="85" x2="620" y2="85" stroke="${C.line}" stroke-width="4" stroke-linecap="round"/><circle cx="420" cy="85" r="16" fill="${C.p}" fill-opacity=".4"/>${tx(420,90,"X","svg-h")}<circle cx="570" cy="85" r="16" fill="${C.t}" fill-opacity=".5"/>${tx(570,90,"Y","svg-h")}${tx(490,128,"«мне Y нравится больше, чем X»","svg-t")}`)},
+
+modal:{cap:"Две пары модальных операторов: одна даёт энергию, другая открывает пути.", s:()=>svg(680,190,`
+<rect x="30" y="30" width="300" height="140" rx="16" fill="${C.o}" fill-opacity=".06" stroke="${C.o}"/>${tx(180,22,"мотивация","svg-h")}
+<rect x="50" y="50" width="125" height="100" rx="12" fill="${C.o}" fill-opacity=".1"/>${tx(112,95,"желание","svg-h")}${tx(112,118,"хочу","svg-s")}
+<rect x="185" y="50" width="125" height="100" rx="12" fill="${C.p}" fill-opacity=".1"/>${tx(247,95,"необходимость","svg-h")}${tx(247,118,"должен, надо","svg-s")}
+<rect x="350" y="30" width="300" height="140" rx="16" fill="${C.t}" fill-opacity=".06" stroke="${C.t}"/>${tx(500,22,"способы","svg-h")}
+<rect x="370" y="50" width="125" height="100" rx="12" fill="${C.t}" fill-opacity=".1"/>${tx(432,95,"возможность","svg-h")}${tx(432,118,"могу","svg-s")}
+<rect x="505" y="50" width="125" height="100" rx="12" fill="${C.b}" fill-opacity=".1"/>${tx(567,95,"выбор","svg-h")}${tx(567,118,"выбираю","svg-s")}`)},
+
+selfref:{cap:"Сообщение о категории само попадает в эту категорию.", s:()=>svg(680,170,`
+${arrowDef("a9",C.v)}
+<ellipse cx="340" cy="90" rx="240" ry="65" fill="${C.v}" fill-opacity=".06" stroke="${C.v}" stroke-dasharray="6 4"/>${tx(340,42,"категория: «неслушание»","svg-s")}
+<rect x="230" y="70" width="220" height="40" rx="12" fill="${C.l}" fill-opacity=".15" stroke="${C.l}"/>${tx(340,95,"«ты меня не слушаешь!»","svg-h")}
+<path d="M450 90 C 540 90 540 140 420 135" fill="none" stroke="${C.v}" stroke-width="2" marker-end="url(#a9)"/>${tx(540,150,"сказано с перебиванием","svg-s")}`)},
+
+triangle:{cap:"В каждом сообщении три слоя. Противоречие между ними создаёт ловушку.", s:()=>svg(680,240,`
+<polygon points="340,30 560,200 120,200" fill="${C.v}" fill-opacity=".05" stroke="${C.line}" stroke-width="2"/>
+<circle cx="340" cy="40" r="34" fill="${C.b}" fill-opacity=".15" stroke="${C.b}" stroke-width="2"/>${tx(340,45,"инфо","svg-h")}
+<circle cx="140" cy="195" r="34" fill="${C.o}" fill-opacity=".15" stroke="${C.o}" stroke-width="2"/>${tx(140,200,"команда","svg-h")}
+<circle cx="540" cy="195" r="34" fill="${C.p}" fill-opacity=".15" stroke="${C.p}" stroke-width="2"/>${tx(540,200,"отношение","svg-h")}
+${tx(340,150,"«будь спонтанным!»","svg-t")}${tx(340,170,"команда против спонтанности","svg-s")}`)},
+
+pendulum:{cap:"Абсолютность, ссылка на себя и отрицание заставляют мысль качаться между «правда» и «ложь».", s:()=>svg(680,210,`
+<line x1="200" y1="20" x2="480" y2="20" stroke="${C.line}" stroke-width="3"/>
+<g class="pend"><line x1="340" y1="20" x2="340" y2="150" stroke="${C.v}" stroke-width="2"/><circle cx="340" cy="160" r="16" fill="${C.v}"/></g>
+<path d="M220 150 Q340 210 460 150" fill="none" stroke="#828aa0" stroke-dasharray="4 4"/>
+${tx(190,170,"правда","svg-h")}${tx(490,170,"ложь","svg-h")}
+<style>.pend{transform-origin:340px 20px;animation:sw 2.4s ease-in-out infinite alternate}@keyframes sw{from{transform:rotate(28deg)}to{transform:rotate(-28deg)}}</style>`)},
+
+certainty:{cap:"Чем больше у образа «реальных» характеристик, тем сильнее ощущение, что это правда.", s:()=>{
+const rows=["расстояние","размер","цвет","движение","объём","звук"],a=[.9,.85,.9,.8,.9,.75],b=[.35,.6,.4,.3,.25,.2];
+return svg(680,230,tx(360,20,"собака","svg-h","start")+`<rect x="345" y="10" width="10" height="10" rx="2" fill="${C.t}"/>`+tx(470,20,"дракон","svg-h","start")+`<rect x="455" y="10" width="10" height="10" rx="2" fill="${C.v}"/>`+
+rows.map((r,i)=>{const y=45+i*30;return tx(140,y+12,r,"svg-t","end")+`<rect x="160" y="${y}" width="440" height="7" rx="4" fill="${C.line}"/><rect x="160" y="${y}" width="${440*a[i]}" height="7" rx="4" fill="${C.t}"/><rect x="160" y="${y+9}" width="${440*b[i]}" height="7" rx="4" fill="${C.v}"/>`}).join(""))}},
+
+doors:{cap:"Проблемная связка: оба выхода ведут к проигрышу. Полезная связка: оба выхода ведут к выигрышу.", s:()=>svg(680,200,`
+${[[40,C.p,"проклят","если сделаешь"],[180,C.p,"проклят","если нет"],[380,C.t,"благословен","если сделаешь"],[520,C.t,"благословен","если нет"]].map(([x,c,a,b])=>`<rect x="${x}" y="40" width="120" height="120" rx="14" fill="${c}" fill-opacity=".09" stroke="${c}" stroke-width="2"/><circle cx="${x+100}" cy="105" r="4" fill="${c}"/>${tx(x+60,95,a,"svg-h")}${tx(x+60,116,b,"svg-s")}`).join("")}
+${tx(170,190,"проблемная","svg-t")}${tx(510,190,"полезная","svg-t")}<line x1="340" y1="30" x2="340" y2="170" stroke="${C.line}" stroke-dasharray="4 4"/>`)},
+
+metaphor:{cap:"Метафора «X это Y»: критерии конкретного образа переезжают на абстрактное понятие.", s:()=>svg(680,180,`
+${arrowDef("b1",C.l)}
+<rect x="40" y="40" width="200" height="100" rx="16" fill="${C.o}" fill-opacity=".1" stroke="${C.o}"/>${tx(140,80,"Y: кремень","svg-h")}${tx(140,104,"твёрдый · не гнётся","svg-s")}${tx(140,120,"высекает искры","svg-s")}
+<rect x="440" y="40" width="200" height="100" rx="16" fill="${C.v}" fill-opacity=".1" stroke="${C.v}"/>${tx(540,80,"X: он","svg-h")}${tx(540,104,"твёрдый · не гнётся","svg-s")}${tx(540,120,"?","svg-s")}
+<path d="M245 90 H430" stroke="${C.l}" stroke-width="2.5" marker-end="url(#b1)"/>${tx(340,80,"наследственность","svg-s")}`)},
+
+forgive:{cap:"Схема работы из сессии: сравнить форму двух образов, учесть возражения, мягко сдвинуть.", s:()=>svg(680,190,`
+${arrowDef("b2",C.l)}
+${[["образ","непрощённого",C.p,20],["образ","прощённого",C.t,180],["возражения","как информация",C.o,340],["сдвиг","и проверка",C.l,500]].map(([a,b,c,x],i)=>`<rect x="${x}" y="50" width="150" height="80" rx="14" fill="${c}" fill-opacity=".1" stroke="${c}"/>${tx(x+75,85,a,"svg-h")}${tx(x+75,107,b,"svg-s")}${i<3?`<path d="M${x+152} 90 H${x+176}" stroke="${C.l}" stroke-width="2" marker-end="url(#b2)"/>`:""}`).join("")}
+${tx(95,160,"далеко, крупно, громко","svg-s")}${tx(255,160,"близко, мягко, тепло","svg-s")}`)}
+};
+
+/* ================= STATE ================= */
+const KEY="ssl_course_v1";
+let S;
+try{S=JSON.parse(localStorage.getItem(KEY))||{}}catch(e){S={}}
+S.done=S.done||{};S.quiz=S.quiz||{};S.ex=S.ex||{};S.step=S.step||{};S.drill=S.drill||{};
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
+const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
+const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const partOf=l=>PARTS.find(p=>p.id===l.part);
+const lessonById=id=>LESSONS.find(l=>l.id===id);
+const exById=id=>EXERCISES.find(e=>e.id===id);
+function toast(m){const t=$("#toast");t.textContent=m;t.classList.add("show");clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove("show"),1800)}
+function exData(id){return S.ex[id]=S.ex[id]||{}}
+
+/* ================= NAV ================= */
+const ICON={
+practice:`<svg viewBox="0 0 24 24" fill="none" stroke="#d4f45a" stroke-width="2" stroke-linecap="round"><path d="M4 20h4L19 9l-4-4L4 16v4z"/><path d="M13.5 6.5l4 4"/></svg>`,
+trainer:`<svg viewBox="0 0 24 24" fill="none" stroke="#ff8a4c" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="4"/><circle cx="12" cy="12" r="0.8" fill="#ff8a4c"/></svg>`,
+journal:`<svg viewBox="0 0 24 24" fill="none" stroke="#4cb2ff" stroke-width="2" stroke-linecap="round"><path d="M6 3h11a1 1 0 011 1v16a1 1 0 01-1 1H6a2 2 0 01-2-2V5a2 2 0 012-2z"/><path d="M8 8h6M8 12h6"/></svg>`,
+gloss:`<svg viewBox="0 0 24 24" fill="none" stroke="#ff5c9a" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h10M4 18h7"/><circle cx="18" cy="17" r="3"/></svg>`
+};
+function renderNav(){
+  const doneN=LESSONS.filter(l=>S.done[l.id]).length;
+  $("#progTxt").textContent=`${doneN} из ${LESSONS.length}`;
+  $("#progBar").style.width=(doneN/LESSONS.length*100)+"%";
+  const h=location.hash||"#/";
+  let html=`<div class="nav-group" style="margin-top:4px">
+  <a class="tool ${h.startsWith("#/practice")||h.startsWith("#/ex/")?"active":""}" href="#/practice">${ICON.practice}Практика</a>
+  <a class="tool ${h.startsWith("#/trainer")?"active":""}" href="#/trainer">${ICON.trainer}Тренажёр</a>
+  <a class="tool ${h.startsWith("#/journal")?"active":""}" href="#/journal">${ICON.journal}Мой журнал</a>
+  <a class="tool ${h.startsWith("#/glossary")?"active":""}" href="#/glossary">${ICON.gloss}Словарь</a></div>`;
+  PARTS.forEach(p=>{
+    html+=`<div class="nav-group"><div class="nav-label"><i style="background:${p.color}"></i>Часть ${p.id}. ${p.name}</div>`;
+    LESSONS.forEach((l,i)=>{if(l.part!==p.id)return;
+      html+=`<a href="#/lesson/${l.id}" class="${S.done[l.id]?"done":""} ${h==="#/lesson/"+l.id?"active":""}" style="--acc:${p.color}"><span class="n">${String(i+1).padStart(2,"0")}</span>${l.title}<span class="dot"></span></a>`});
+    html+=`</div>`});
+  $("#nav").innerHTML=html;
+}
+
+/* ================= HOME ================= */
+function viewHome(){
+  document.documentElement.style.setProperty("--acc","var(--c1)");
+  const doneN=LESSONS.filter(l=>S.done[l.id]).length;
+  const next=LESSONS.find(l=>!S.done[l.id])||LESSONS[0];
+  return `<div class="view">
+  <section class="hero">
+    <div>
+      <div class="eyebrow"><i></i>Интерактивный курс</div>
+      <h1>Как мы <span>понимаем</span> себя и друг друга</h1>
+      <p class="lead" style="margin-top:18px">Курс по книге Стива Андреаса «Шесть слепых слонов». 24 урока со схемами, проверочными вопросами и упражнениями, которые можно делать прямо здесь. Ответы сохраняются в браузере.</p>
+      <div class="actions">
+        <a class="btn" href="#/lesson/${next.id}">${doneN?"Продолжить: урок "+(LESSONS.indexOf(next)+1):"Начать с первого урока"} →</a>
+        <a class="btn ghost" href="#/practice">Сразу к практике</a>
+      </div>
+    </div>
+    <div class="parable">
+      <div class="elephants">${["c1","c6","c3","c4","c2","c5"].map((c,i)=>`<span style="background:var(--${c})">${i+1}</span>`).join("")}</div>
+      <p><b>Шесть слепых слонов</b> решили узнать, как выглядит человек. Первый ощупал его ногой и сказал: «Люди плоские». Остальные проверили, и каждый пришёл к тому же выводу.</p>
+      <p style="margin:0">Притча перевёрнута нарочно. Мы все ощупываем мир своим способом и уверены, что знаем, каков он. Книга учит видеть, как устроено это «ощупывание».</p>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-head"><div><div class="eyebrow"><i></i>Карта книги</div><h2>Три части, одна логика</h2></div><p>Сначала два кирпичика, потом то, как из них строится смысл, потом живые паттерны общения.</p></div>
+    <div class="map">${PARTS.map(p=>`<div class="card" style="--pc:${p.color}"><div class="num"><i style="background:${p.color}"></i>Часть ${p.id} · уроки ${LESSONS.filter(l=>l.part===p.id).map(l=>LESSONS.indexOf(l)+1).filter((v,i,a)=>i===0||i===a.length-1).join("–")}</div><h3>${p.name}</h3><p style="margin:0">${p.desc}</p></div>`).join("")}</div>
+    <div class="figure" style="margin-top:16px">${svg(680,150,`
+      <rect x="20" y="30" width="150" height="54" rx="14" fill="${C.t}" fill-opacity=".12" stroke="${C.t}"/>${tx(95,62,"Диапазон","svg-h")}
+      <rect x="20" y="92" width="150" height="54" rx="14" fill="${C.v}" fill-opacity=".12" stroke="${C.v}"/>${tx(95,124,"Категория","svg-h")}
+      <path d="M175 57 C 220 57 220 88 255 88 M175 119 C 220 119 220 88 255 88" stroke="#828aa0" fill="none" stroke-width="2"/>
+      <rect x="260" y="60" width="160" height="56" rx="14" fill="${C.o}" fill-opacity=".12" stroke="${C.o}"/>${tx(340,85,"Значимость","svg-h")}${tx(340,104,"X→Y · X=Y · X в Y","svg-s")}
+      <path d="M425 88 H470" stroke="#828aa0" stroke-width="2"/>
+      <rect x="475" y="60" width="185" height="56" rx="14" fill="${C.l}" fill-opacity=".1" stroke="${C.l}"/>${tx(567,85,"Паттерны общения","svg-h")}${tx(567,104,"парадокс · метафора · …","svg-s")}`)}<figcaption>Вся книга на одной схеме. Два атома дают молекулы смысла, а из молекул складывается живое общение.</figcaption></div>
+  </section>
+
+  <section class="section">
+    <div class="section-head"><div><div class="eyebrow"><i></i>Как заниматься</div><h2>Четыре шага на каждый урок</h2></div></div>
+    <div class="howto">
+      <div class="plate"><div class="ic" style="background:var(--c1)">1</div><b>Прочитай</b><span>Урок разбит на короткие блоки. Каждый блок про одну мысль.</span></div>
+      <div class="plate"><div class="ic" style="background:var(--c6)">2</div><b>Посмотри схему</b><span>Схемы собирают идею в одну картинку, которую легко запомнить.</span></div>
+      <div class="plate"><div class="ic" style="background:var(--c3)">3</div><b>Проверь себя</b><span>Пара вопросов в конце с объяснением каждого ответа.</span></div>
+      <div class="plate"><div class="ic" style="background:var(--c5)">4</div><b>Сделай упражнение</b><span>Пошаговые сценарии из книги с полями для записей и таймером.</span></div>
+    </div>
+  </section>
+
+  ${PARTS.map(p=>`<section class="section"><div class="section-head"><div><div class="eyebrow" style="--acc:${p.color}"><i></i>Часть ${p.id}</div><h2>${p.name}</h2></div></div>
+  <div class="lessons">${LESSONS.filter(l=>l.part===p.id).map(l=>`<a class="lesson-tile ${S.done[l.id]?"done":""}" href="#/lesson/${l.id}" style="--pc:${p.color}"><div class="top"><span><i style="display:inline-block;margin-right:6px"></i>Урок ${LESSONS.indexOf(l)+1}</span></div><b>${l.title}</b><small>${l.short}</small></a>`).join("")}</div></section>`).join("")}
+  </div>`;
+}
+
+/* ================= LESSON ================= */
+function viewLesson(id){
+  const l=lessonById(id); if(!l) return viewHome();
+  const p=partOf(l), idx=LESSONS.indexOf(l);
+  document.documentElement.style.setProperty("--acc",p.color);
+  const prev=LESSONS[idx-1], next=LESSONS[idx+1];
+  const q=S.quiz[l.id]||{};
+  const pr=(l.practice||[]).map(x=>{
+    if(x.startsWith("trainer:")){const d=x.split(":")[1];const name=DRILLS[d]?DRILLS[d].title:(d==="negative"?"Перевод в позитив":"Тренажёр");return `<a class="ex-tile" href="#/trainer/${d}" style="--pc:var(--c2)"><div class="tags"><span>тренажёр</span></div><b>${name}</b><small>Быстрые карточки на закрепление.</small></a>`}
+    const e=exById(x); if(!e) return ""; return `<a class="ex-tile" href="#/ex/${e.id}" style="--pc:${p.color}"><div class="tags"><span>${e.mode}</span><span>${e.time}</span></div><b>${e.title}</b><small>${e.short}</small></a>`}).join("");
+  return `<div class="view lesson-grid">
+  <article class="content">
+    <header class="lesson-head">
+      <div class="eyebrow"><i></i>Урок ${idx+1} · ${p.name}</div>
+      <h1>${l.title}</h1>
+      <p class="lead">${l.lead}</p>
+      <div class="meta"><span class="chip"><i></i>${l.blocks.length} блоков</span><span class="chip">${l.quiz.length} вопроса</span>${S.done[l.id]?`<span class="chip" style="color:var(--c5)">✓ пройден</span>`:""}</div>
+    </header>
+    ${l.blocks.map((b,i)=>`<section class="block" id="b${i}"><h2><span class="bn">${String(i+1).padStart(2,"0")}</span>${b.h}</h2>${b.html}${b.fig&&FIG[b.fig]?`<figure class="figure">${FIG[b.fig].s()}<figcaption>${FIG[b.fig].cap}</figcaption></figure>`:""}</section>`).join("")}
+    <section class="quiz" id="quiz"><h2>Проверь себя</h2><p>Выбери ответ. Объяснение появится сразу.</p>
+      ${l.quiz.map((qq,qi)=>`<div class="qitem" data-qi="${qi}"><div class="qq">${qi+1}. ${qq.q}</div><div class="opts">${qq.o.map((o,oi)=>`<button class="opt ${q[qi]!==undefined?(oi===qq.a?"ok":(q[qi]===oi?"bad":"")):""}" data-oi="${oi}">${o}</button>`).join("")}</div><div class="qexp ${q[qi]!==undefined?"show":""} ${q[qi]!==undefined&&q[qi]!==qq.a?"wrong":""}">${q[qi]!==undefined?(q[qi]===qq.a?"<b>Верно.</b> ":"<b>Не совсем.</b> ")+qq.e:""}</div></div>`).join("")}
+      <div id="scoreBox"></div>
+    </section>
+    ${pr?`<section class="block"><h2>Практика к уроку</h2><div class="ex-list">${pr}</div></section>`:""}
+    <div style="margin-top:28px"><button class="btn" id="markDone">${S.done[l.id]?"Урок пройден ✓":"Отметить урок пройденным"}</button></div>
+    <nav class="lesson-foot">
+      ${prev?`<a class="pager" href="#/lesson/${prev.id}"><small>← Урок ${idx}</small><b>${prev.title}</b></a>`:`<span></span>`}
+      ${next?`<a class="pager next" href="#/lesson/${next.id}"><small>Урок ${idx+2} →</small><b>${next.title}</b></a>`:`<a class="pager next" href="#/practice"><small>Дальше →</small><b>Вся практика</b></a>`}
+    </nav>
+  </article>
+  <aside class="aside">
+    <div class="plate"><h4>Ключевые идеи</h4><ol>${l.keys.map(k=>`<li>${k}</li>`).join("")}</ol></div>
+    <div class="plate toc-plate"><h4>В этом уроке</h4><div class="toc">${l.blocks.map((b,i)=>`<a href="javascript:void(0)" data-go="b${i}">${b.h}</a>`).join("")}<a href="javascript:void(0)" data-go="quiz">Проверь себя</a></div></div>
+  </aside></div>`;
+}
+function bindLesson(id){
+  const l=lessonById(id); if(!l) return;
+  $$(".toc a").forEach(a=>a.onclick=()=>document.getElementById(a.dataset.go).scrollIntoView({behavior:"smooth"}));
+  const upd=()=>{const q=S.quiz[l.id]||{};const n=Object.keys(q).length;if(n<l.quiz.length){$("#scoreBox").innerHTML="";return}
+    const ok=l.quiz.filter((qq,i)=>q[i]===qq.a).length, pct=ok/l.quiz.length, r=19, c=2*Math.PI*r;
+    $("#scoreBox").innerHTML=`<div class="score"><svg class="ring" viewBox="0 0 46 46"><circle cx="23" cy="23" r="${r}" fill="none" stroke="#252b3a" stroke-width="5"/><circle cx="23" cy="23" r="${r}" fill="none" stroke="${pct===1?"#d4f45a":"#ff8a4c"}" stroke-width="5" stroke-linecap="round" stroke-dasharray="${c*pct} ${c}" transform="rotate(-90 23 23)"/></svg><div><b>${ok} из ${l.quiz.length}</b><div style="font-size:14px;color:var(--text2)">${pct===1?"Отлично, материал уложился. Урок отмечен пройденным.":"Перечитай блоки, где были ошибки, и попробуй снова."}</div></div>${pct<1?`<button class="btn ghost sm" id="resetQ" style="margin-left:auto">Заново</button>`:""}</div>`;
+    if(pct===1&&!S.done[l.id]){S.done[l.id]=1;save();renderNav();$("#markDone").textContent="Урок пройден ✓"}
+    const rq=$("#resetQ"); if(rq) rq.onclick=()=>{delete S.quiz[l.id];save();render()};
+  };
+  $$(".qitem").forEach(it=>{const qi=+it.dataset.qi, qq=l.quiz[qi];
+    $$(".opt",it).forEach(b=>b.onclick=()=>{ if((S.quiz[l.id]||{})[qi]!==undefined) return;
+      const oi=+b.dataset.oi; S.quiz[l.id]=S.quiz[l.id]||{}; S.quiz[l.id][qi]=oi; save();
+      $$(".opt",it).forEach((x,j)=>{if(j===qq.a)x.classList.add("ok");else if(j===oi)x.classList.add("bad")});
+      const ex=$(".qexp",it); ex.innerHTML=(oi===qq.a?"<b>Верно.</b> ":"<b>Не совсем.</b> ")+qq.e; ex.classList.add("show"); if(oi!==qq.a)ex.classList.add("wrong"); upd();
+    })});
+  upd();
+  $("#markDone").onclick=()=>{S.done[l.id]=S.done[l.id]?0:1;if(!S.done[l.id])delete S.done[l.id];save();renderNav();$("#markDone").textContent=S.done[l.id]?"Урок пройден ✓":"Отметить урок пройденным";toast(S.done[l.id]?"Урок отмечен":"Отметка снята")};
+}
+
+/* ================= PRACTICE LIST ================= */
+function viewPractice(){
+  document.documentElement.style.setProperty("--acc","var(--c5)");
+  return `<div class="view"><div class="ex-head"><div class="eyebrow"><i></i>Практика</div><h1>Упражнения из книги</h1><p class="lead">Каждое упражнение разбито на шаги. Записи сохраняются автоматически и попадают в журнал. Там их можно скачать одним файлом.</p></div>
+  ${PARTS.map(p=>{const list=EXERCISES.filter(e=>partOf(lessonById(e.lesson)).id===p.id);return list.length?`<section class="section"><div class="eyebrow" style="--acc:${p.color}"><i></i>${p.name}</div><div class="ex-list">${list.map(e=>{const d=S.ex[e.id];const filled=d&&Object.values(d).some(v=>v&&String(v).trim());return `<a class="ex-tile" href="#/ex/${e.id}" style="--pc:${p.color}"><div class="tags"><span>${e.mode}</span><span>${e.time}</span>${filled?`<span style="color:var(--c5)">есть записи</span>`:""}</div><b>${e.title}</b><small>${e.short}</small><small style="color:var(--text2)">к уроку «${lessonById(e.lesson).title}»</small></a>`}).join("")}</div></section>`:""}).join("")}
+  <section class="section"><div class="eyebrow" style="--acc:var(--c2)"><i></i>Быстрые тренировки</div><a class="ex-tile" href="#/trainer" style="--pc:var(--c2);max-width:420px"><b>Тренажёр</b><small>Карточки: диапазон или категория, формы смысла, модальные операторы, парадоксы, перевод в позитив, логические уровни, интонация.</small></a></section></div>`;
+}
+
+/* ================= TIMER ================= */
+function timerHTML(sec){return `<div class="plate" style="margin-top:16px"><div class="timer"><div class="tv" data-tv>${fmt(sec)}</div><button class="btn sm" data-tstart>Старт</button><button class="btn ghost sm" data-treset>Сброс</button></div><div class="timer-presets">${[1,3,5,10].map(m=>`<button class="btn ghost sm" data-tp="${m*60}">${m} мин</button>`).join("")}</div></div>`}
+function fmt(s){return String(Math.floor(s/60)).padStart(2,"0")+":"+String(s%60).padStart(2,"0")}
+let TIMER=null;
+function bindTimer(root,sec){
+  const tv=$("[data-tv]",root); if(!tv) return; let left=sec, base=sec, run=false;
+  const st=$("[data-tstart]",root);
+  const stop=()=>{clearInterval(TIMER);TIMER=null;run=false;st.textContent="Старт"};
+  st.onclick=()=>{ if(run){stop();return} run=true; st.textContent="Пауза"; clearInterval(TIMER);
+    TIMER=setInterval(()=>{left--;tv.textContent=fmt(Math.max(left,0)); if(left<=0){stop();beep();toast("Время вышло");left=base}},1000)};
+  $("[data-treset]",root).onclick=()=>{stop();left=base;tv.textContent=fmt(left)};
+  $$("[data-tp]",root).forEach(b=>b.onclick=()=>{stop();base=left=+b.dataset.tp;tv.textContent=fmt(left)});
+}
+function beep(){try{const a=new (window.AudioContext||window.webkitAudioContext)();[0,.25,.5].forEach(t=>{const o=a.createOscillator(),g=a.createGain();o.frequency.value=880;o.connect(g);g.connect(a.destination);g.gain.setValueAtTime(.15,a.currentTime+t);g.gain.exponentialRampToValueAtTime(.001,a.currentTime+t+.2);o.start(a.currentTime+t);o.stop(a.currentTime+t+.22)})}catch(e){}}
+
+/* ================= FIELD BINDING ================= */
+function fieldHTML(exId,f){const v=exData(exId)[f.k]||"";
+  if(f.sel) return `<label class="fl">${f.l}</label><select data-k="${f.k}"><option value="">Выбери…</option>${f.sel.map(o=>`<option ${v===o?"selected":""}>${o}</option>`).join("")}</select>`;
+  if(f.short) return `<label class="fl">${f.l}</label><input type="text" data-k="${f.k}" value="${esc(v)}" placeholder="${esc(f.ph||"")}" style="max-width:160px">`;
+  return `<label class="fl">${f.l}</label><textarea data-k="${f.k}" placeholder="${esc(f.ph||"")}">${esc(v)}</textarea>`}
+function bindFields(exId,root,onChange){
+  $$("[data-k]",root).forEach(el=>{const h=()=>{exData(exId)[el.dataset.k]=el.value;exData(exId)._t=Date.now();save();const sv=$("[data-saved]");if(sv){sv.style.opacity=1;clearTimeout(sv._t);sv._t=setTimeout(()=>sv.style.opacity=.5,900)}onChange&&onChange()};el.addEventListener("input",h);el.addEventListener("change",h)});
+}
+
+/* ================= EXERCISE ================= */
+function viewEx(id){
+  const e=exById(id); if(!e) return viewPractice();
+  const l=lessonById(e.lesson), p=partOf(l);
+  document.documentElement.style.setProperty("--acc",p.color);
+  const head=`<div class="ex-head"><a href="#/practice" style="font-size:13px;color:var(--muted);text-decoration:none">← Вся практика</a><div class="eyebrow" style="margin-top:14px"><i></i>Упражнение · ${e.mode} · ${e.time}</div><h1>${e.title}</h1><p class="lead">${e.intro}</p></div>`;
+  const side=`<aside class="aside"><div class="plate"><h4>Из урока</h4><a href="#/lesson/${l.id}" style="text-decoration:none"><b style="display:block;margin-bottom:6px">${l.title}</b></a><ol>${l.keys.slice(0,4).map(k=>`<li>${k}</li>`).join("")}</ol></div><div class="plate"><h4>Записи</h4><p style="font-size:13.5px;margin:0">Сохраняются в этом браузере. <span class="saved" data-saved style="opacity:.5;display:inline-flex"><i></i>сохранено</span></p><div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap"><a class="btn ghost sm" href="#/journal">Журнал</a><button class="btn ghost sm" id="clearEx">Очистить</button></div></div></aside>`;
+  let body="";
+  if(e.custom) body=CUSTOM[e.custom].html(e);
+  else body=`<div id="stepsNav" class="steps-nav"></div><div id="stepBox"></div>`;
+  return `<div class="view">${head}<div class="ex-layout"><div>${body}</div>${side}</div></div>`;
+}
+function bindEx(id){
+  const e=exById(id); if(!e) return;
+  $("#clearEx").onclick=()=>{if(confirm("Удалить записи этого упражнения?")){delete S.ex[id];delete S.step[id];save();render();toast("Записи удалены")}};
+  if(e.custom){CUSTOM[e.custom].bind(e);return}
+  const n=e.steps.length;
+  const drawNav=()=>{const cur=S.step[id]||0;$("#stepsNav").innerHTML=e.steps.map((s,i)=>{const filled=s.f.some(f=>(exData(id)[f.k]||"").trim());return `<button class="${i===cur?"cur":""} ${filled?"filled":""}" data-go="${i}" title="${esc(s.t)}">${i+1}</button>`}).join("")+`<button class="${cur===n?"cur":""}" data-go="${n}" title="Итог">✓</button>`;$$("#stepsNav button").forEach(b=>b.onclick=()=>{S.step[id]=+b.dataset.go;save();draw()})};
+  const draw=()=>{clearInterval(TIMER);const cur=S.step[id]||0;drawNav();
+    if(cur>=n){$("#stepBox").innerHTML=`<div class="done-box"><div class="sn" style="color:var(--acc);font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase">Готово</div><h2 style="margin:8px 0 10px">Упражнение пройдено</h2><p>Посмотри на свои записи целиком. Что изменилось между первым и последним шагом? Повторять упражнение полезно на разных ситуациях: через несколько раз шаги начинают происходить сами, без инструкции.</p>${e.steps.map(s=>s.f.map(f=>{const v=exData(id)[f.k];return v?`<div class="journal-entry"><div class="a"><b>${s.t} · ${f.l}</b>${esc(v)}</div></div>`:""}).join("")).join("")}<div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:12px"><button class="btn" id="again">Пройти снова на новой ситуации</button><a class="btn ghost" href="#/lesson/${e.lesson}">К уроку</a></div></div>`;
+      $("#again").onclick=()=>{archive(id);S.step[id]=0;save();draw();toast("Прошлые записи сохранены в журнале")};return}
+    const s=e.steps[cur];
+    $("#stepBox").innerHTML=`<div class="step"><div class="sn">Шаг ${cur+1} из ${n}</div><h2>${s.t}</h2><p>${s.text}</p>${s.pause?`<div class="pause">◷ не торопись, дай себе паузу</div>`:""}${s.timer?timerHTML(s.timer):""}${s.f.map(f=>fieldHTML(id,f)).join("")}<div class="step-actions"><button class="btn ghost" id="prevS" ${cur===0?"disabled":""}>← Назад</button><button class="btn" id="nextS">${cur===n-1?"Завершить":"Дальше →"}</button></div></div>`;
+    if(s.timer) bindTimer($("#stepBox"),s.timer);
+    bindFields(id,$("#stepBox"),drawNav);
+    $("#prevS").onclick=()=>{S.step[id]=cur-1;save();draw()};
+    $("#nextS").onclick=()=>{S.step[id]=cur+1;save();draw();window.scrollTo({top:0,behavior:"smooth"})};
+    const first=$("textarea,input",$("#stepBox")); if(first&&window.innerWidth>900) first.focus({preventScroll:true});
+  };
+  draw();
+}
+function archive(id){const d=S.ex[id];if(!d)return;S.arch=S.arch||[];S.arch.push({id,t:Date.now(),d:JSON.parse(JSON.stringify(d))});delete S.ex[id];save()}
+
+/* ================= CUSTOM EXERCISES ================= */
+const CC=["#37e0c0","#ff8a4c","#a98bff","#ff5c9a","#d4f45a","#4cb2ff"];
+const CUSTOM={
+circles:{
+ html:e=>{const d=exData(e.id);return `<div class="step"><div class="sn">Шаг 1</div><h2>Решение и факторы</h2><p>Впиши решение, которое нужно принять, и до шести факторов, которые на него влияют: деньги, время, люди, здоровье, риски, мечты.</p>
+ <label class="fl">Решение</label><input type="text" data-k="center" value="${esc(d.center||"")}" placeholder="Переехать в другой город?">
+ <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 12px">${[0,1,2,3,4,5].map(i=>`<div><label class="fl" style="color:${CC[i]}">Фактор ${i+1}</label><input type="text" data-k="f${i}" value="${esc(d["f"+i]||"")}" placeholder="${["Зарплата","Друзья","Климат","Карьера","Родители","Цены на жильё"][i]}"></div>`).join("")}</div></div>
+ <div class="step" style="margin-top:16px"><div class="sn">Шаг 2</div><h2>Собери в одну картинку</h2><p>Сначала факторы стоят отдельно, как приходят в голову по очереди. Нажми кнопку, и они сойдутся к центру. Посмотри на них одновременно… Какой круг притягивает внимание? Какой ты обычно упускаешь?</p>
+ <div class="circles" id="circles"></div><div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap"><button class="btn" id="gather">Собрать вместе</button></div></div>
+ <div class="step" style="margin-top:16px"><div class="sn">Шаг 3</div><h2>Что видно целиком</h2>${fieldHTML(e.id,{k:"see",l:"Что заметил, когда увидел всё сразу",ph:""})}${fieldHTML(e.id,{k:"decision",l:"Куда склоняется решение теперь",ph:""})}${fieldHTML(e.id,{k:"eco",l:"Экологическая проверка",ph:"Есть ли внутренние возражения?"})}</div>`},
+ bind:e=>{let together=false;const draw=()=>{const d=exData(e.id);const box=$("#circles");const fs=[0,1,2,3,4,5].map(i=>d["f"+i]).map((v,i)=>({v,i})).filter(x=>x.v&&x.v.trim());
+  const R=together?17:38;box.innerHTML=`<div class="c center" style="--cc:#eceef4;left:50%;top:50%">${esc(d.center||"Решение")}</div>`+fs.map((x,k)=>{const a=-Math.PI/2+k*2*Math.PI/Math.max(fs.length,1);return `<div class="c" style="--cc:${CC[x.i]};left:${50+R*Math.cos(a)}%;top:${50+R*Math.sin(a)}%;${together?"opacity:.85;mix-blend-mode:screen;":""}">${esc(x.v)}</div>`}).join("")};
+  bindFields(e.id,document,draw);draw();$("#gather").onclick=()=>{together=!together;$("#gather").textContent=together?"Разложить обратно":"Собрать вместе";draw()}}
+},
+criteria:{
+ html:e=>`<div class="step"><div class="sn">Шаг 1</div><h2>Категория</h2>${fieldHTML(e.id,{k:"cat",l:"Какая категория?",ph:"Хороший друг"})}</div>
+ <div class="step" style="margin-top:16px"><div class="sn">Шаг 2</div><h2>Критерии</h2><p>Добавь критерии. Отметь тип: сенсорный (можно увидеть или услышать) или общий, дискретный (да/нет) или аналоговый (больше/меньше). Стрелками расставь по важности: сверху самое важное.</p>
+ <div id="critList"></div><div style="display:flex;gap:8px;margin-top:12px"><input type="text" id="critNew" placeholder="Новый критерий и Enter"><button class="btn" id="critAdd">Добавить</button></div>
+ <div class="plate" style="margin-top:14px" id="critSum"></div></div>
+ <div class="step" style="margin-top:16px"><div class="sn">Шаг 3</div><h2>Проверка строгости</h2><p>Посмотри на список. Сколько людей или ситуаций из твоей жизни пройдут все критерии через «и»? Если почти никто, ты в зоне перфекционизма. Какие критерии можно ослабить или перевести в «или»? Какие стоит оставить жёсткими?</p>${fieldHTML(e.id,{k:"refl",l:"Выводы",ph:""})}</div>`,
+ bind:e=>{const d=exData(e.id);d.list=d.list||[];d.join=d.join||"и";
+  const draw=()=>{const L=d.list;$("#critList").innerHTML=L.length?L.map((c,i)=>`<div class="plate" style="display:grid;grid-template-columns:28px 1fr auto;gap:10px;align-items:center;margin-bottom:8px;padding:10px 12px"><b style="color:var(--acc)">${i+1}</b><div><div style="color:var(--text);font-weight:500">${esc(c.t)}</div><div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap"><button class="chip" data-tg="s" data-i="${i}">${c.s?"общий":"сенсорный"}</button><button class="chip" data-tg="a" data-i="${i}">${c.a?"аналоговый":"дискретный"}</button>${c.a?`<input type="text" data-th="${i}" value="${esc(c.th||"")}" placeholder="порог" style="max-width:140px;padding:3px 10px;font-size:12px;border-radius:20px">`:""}</div></div><div style="display:flex;gap:4px"><button class="btn ghost sm" data-up="${i}" aria-label="выше">↑</button><button class="btn ghost sm" data-dn="${i}" aria-label="ниже">↓</button><button class="btn ghost sm" data-rm="${i}" aria-label="удалить">✕</button></div></div>`).join(""):`<div class="empty">Пока пусто. Добавь первый критерий.</div>`;
+   const gen=L.filter(c=>c.s).length, an=L.filter(c=>c.a).length;
+   $("#critSum").innerHTML=`<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><span style="font-size:14px">Соединять критерии через:</span><button class="btn sm ${d.join==="и"?"":"ghost"}" data-j="и">«и»</button><button class="btn sm ${d.join==="или"?"":"ghost"}" data-j="или">«или»</button></div><p style="margin:10px 0 0;font-size:14px">${L.length?`<b>${esc(d.cat||"Категория")}</b> = ${L.map(c=>esc(c.t)).join(` <span style="color:var(--acc)">${d.join}</span> `)}.<br>Общих критериев: ${gen}, аналоговых: ${an}. ${d.join==="и"&&L.length>=5?"Пять и больше условий через «и» дают очень узкий фильтр.":d.join==="или"?"Через «или» фильтр широкий: проходит всё, что совпало хотя бы по одному признаку.":""}${gen>L.length/2?" Больше половины критериев общие: у каждого из них есть свои скрытые критерии.":""}`:"Здесь появится формула категории."}</p>`;
+   $$("[data-tg]").forEach(b=>b.onclick=()=>{const c=L[+b.dataset.i];c[b.dataset.tg]=!c[b.dataset.tg];save();draw()});
+   $$("[data-th]").forEach(b=>b.oninput=()=>{L[+b.dataset.th].th=b.value;save()});
+   $$("[data-up]").forEach(b=>b.onclick=()=>{const i=+b.dataset.up;if(i>0){[L[i-1],L[i]]=[L[i],L[i-1]];save();draw()}});
+   $$("[data-dn]").forEach(b=>b.onclick=()=>{const i=+b.dataset.dn;if(i<L.length-1){[L[i+1],L[i]]=[L[i],L[i+1]];save();draw()}});
+   $$("[data-rm]").forEach(b=>b.onclick=()=>{L.splice(+b.dataset.rm,1);save();draw()});
+   $$("[data-j]").forEach(b=>b.onclick=()=>{d.join=b.dataset.j;save();draw()});};
+  const add=()=>{const v=$("#critNew").value.trim();if(!v)return;d.list.push({t:v});$("#critNew").value="";save();draw()};
+  $("#critAdd").onclick=add;$("#critNew").onkeydown=ev=>{if(ev.key==="Enter")add()};
+  bindFields(e.id,document,draw);draw()}
+},
+values:{
+ html:e=>`<div class="step"><div class="sn">Шаг 1</div><h2>Твои ценности</h2><p>Впиши 5–8 ценностей, по одной на строку: свобода, безопасность, признание, близость, развитие, здоровье, деньги, творчество…</p>${fieldHTML(e.id,{k:"vals",l:"Ценности",ph:"Свобода\nЗдоровье\nБлизость\nРазвитие\nДеньги"})}</div>
+ <div class="step" style="margin-top:16px"><div class="sn">Шаг 2</div><h2>Расставь по порядку</h2><p>Нажимай на ценности по очереди, начиная с самой важной. Сначала для контекста «работа», потом для «дом и близкие».</p>
+ <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px" class="vgrid"><div><h3>Работа</h3><div class="order-list" id="ordA"></div></div><div><h3>Дом и близкие</h3><div class="order-list" id="ordB"></div></div></div>
+ <div style="margin-top:12px"><button class="btn ghost sm" id="vReset">Сбросить порядок</button></div></div>
+ <div class="step" style="margin-top:16px"><div class="sn">Шаг 3</div><h2>Сравнение</h2><div id="vCmp" class="plate"></div>${fieldHTML(e.id,{k:"vrefl",l:"Что это говорит о тебе? Где жёсткая иерархия мешает?",ph:""})}</div>`,
+ bind:e=>{const d=exData(e.id);d.oA=d.oA||[];d.oB=d.oB||[];
+  const vals=()=>(d.vals||"").split("\n").map(x=>x.trim()).filter(Boolean).slice(0,10);
+  const draw=()=>{const V=vals();d.oA=d.oA.filter(x=>V.includes(x));d.oB=d.oB.filter(x=>V.includes(x));
+   const list=(key,el)=>{$(el).innerHTML=V.length?V.map(v=>{const pos=d[key].indexOf(v);return `<button class="${pos>=0?"picked":""}" data-o="${key}" data-v="${esc(v)}"><span class="pos">${pos>=0?pos+1:"·"}</span>${esc(v)}</button>`}).join(""):`<div class="empty">Сначала впиши ценности</div>`};
+   list("oA","#ordA");list("oB","#ordB");
+   $$("[data-o]").forEach(b=>b.onclick=()=>{const k=b.dataset.o,v=b.dataset.v,a=d[k];const i=a.indexOf(v);if(i>=0)a.splice(i,1);else a.push(v);save();draw()});
+   const both=V.filter(v=>d.oA.includes(v)&&d.oB.includes(v));
+   $("#vCmp").innerHTML=both.length?both.map(v=>{const a=d.oA.indexOf(v)+1,b=d.oB.indexOf(v)+1,df=a-b;return `<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--line);font-size:14.5px"><span>${esc(v)}</span><span style="color:var(--text2)">работа: ${a} · дом: ${b} ${df?`<b style="color:${df>0?"var(--c1)":"var(--c2)"}">${df>0?"↑ дома выше":"↓ дома ниже"}</b>`:`<b style="color:var(--muted)">=</b>`}</span></div>`}).join(""):`<span style="color:var(--muted);font-size:14px">Расставь ценности в обоих столбцах, и здесь появится сравнение.</span>`};
+  $("#vReset").onclick=()=>{d.oA=[];d.oB=[];save();draw()};
+  bindFields(e.id,document,draw);draw()}
+},
+model:{
+ html:e=>`<div class="step"><div class="sn">Шаг 1</div><h2>Твоя формулировка</h2><p>Запиши проблему одной фразой, от первого лица, как сказал бы её другу. Например: «муж никогда не думает, как его слова воспринимают другие». Начни с маленькой буквы, без точки в конце.</p>${fieldHTML(e.id,{k:"prob",l:"Проблема",ph:"я не умею говорить «нет»"})}${fieldHTML(e.id,{k:"before",l:"Как она ощущается сейчас (картинка, голос, тело)",ph:""})}</div>
+ <div class="step" style="margin-top:16px"><div class="sn">Шаг 2</div><h2>Восемь фраз</h2><p>Проговаривай медленно, вслух, с паузой после каждой. Или нажми ▶, и браузер прочитает фразу. После каждой фразы замечай, что меняется.</p><div id="phr"></div></div>
+ <div class="step" style="margin-top:16px"><div class="sn">Шаг 3</div><h2>Что изменилось</h2>${fieldHTML(e.id,{k:"after",l:"Как ощущается проблема теперь",ph:""})}</div>`,
+ bind:e=>{const d=exData(e.id);
+  const T=["То есть тебе кажется, что {p}.","Значит, ты видишь ситуацию так: {p}.","Для тебя проблема в том, что {p}.","То есть ты думаешь, что {p}.","То есть теперь ты ощущаешь, что {p}.","То, что ты вынес из этой ситуации, это то, что {p}?","Твоё понимание такое: «{p}».","Для тебя, как ты сейчас на это смотришь, проблема в том, что «{p}»?"];
+  const tag=["кажется","видишь","для тебя","думаешь","теперь","вопрос","цитата","всё вместе"];
+  const draw=()=>{const p=(d.prob||"").trim().replace(/[.!?]+$/,"")||"…";$("#phr").innerHTML=T.map((t,i)=>`<div class="plate" style="display:flex;gap:12px;align-items:center;margin-bottom:8px"><b style="color:var(--acc);width:20px">${i+1}</b><div style="flex:1"><div style="color:var(--text);font-size:15.5px">${esc(t.replace("{p}",p))}</div><div style="font-size:12px;color:var(--muted)">${tag[i]}</div></div><button class="btn ghost sm" data-say="${i}" aria-label="прочитать">▶</button></div>`).join("");
+   $$("[data-say]").forEach(b=>b.onclick=()=>{if(!("speechSynthesis" in window)){toast("Браузер не умеет читать вслух");return}speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(T[+b.dataset.say].replace("{p}",p));u.lang="ru-RU";u.rate=.85;speechSynthesis.speak(u)})};
+  bindFields(e.id,document,draw);draw()}
+},
+reality:{
+ html:e=>{const rows=["Где находится образ","Расстояние","Размер","Цвет или ч/б","Движение","Объём (плоский / 3D)","Звук","Чёткость"];return `<div class="step"><div class="sn">Шаг 1</div><h2>Два образа</h2><p>Представь собаку, которую ты точно видел в жизни. Затем представь дракона. Для каждого заполни характеристики. Не придумывай, просто замечай, как образ уже устроен.</p>
+ <div style="overflow-x:auto"><table style="width:100%;border-collapse:separate;border-spacing:0 8px;min-width:460px"><thead><tr><th style="text-align:left;font-size:12px;color:var(--muted);font-weight:600"></th><th style="text-align:left;font-size:13px;color:var(--c1)">Собака (реальная)</th><th style="text-align:left;font-size:13px;color:var(--c3)">Дракон (вымышленный)</th></tr></thead><tbody>${rows.map((r,i)=>`<tr><td style="font-size:13.5px;color:var(--text2);padding-right:10px;width:160px">${r}</td><td style="padding-right:8px"><input type="text" data-k="d${i}" value="${esc(exData(e.id)["d"+i]||"")}"></td><td><input type="text" data-k="g${i}" value="${esc(exData(e.id)["g"+i]||"")}"></td></tr>`).join("")}</tbody></table></div></div>
+ <div class="step" style="margin-top:16px"><div class="sn">Шаг 2</div><h2>Эксперимент</h2><p>Пообещай себе, что вернёшь всё назад. Теперь по одной характеристике переноси на дракона качества собаки: поставь его туда же, сделай того же размера, цвета, добавь движение и звук… Что происходит с ощущением реальности? Затем наоборот: дай собаке характеристики дракона.</p>${fieldHTML(e.id,{k:"exp",l:"Что заметил",ph:"Когда дракон стал объёмным и цветным, он показался почти настоящим…"})}</div>
+ <div class="step" style="margin-top:16px"><div class="sn">Шаг 3</div><h2>Верни всё на место</h2><p>Верни оба образа к исходным характеристикам. Убедись, что собака снова ощущается реальной, а дракон вымышленным.</p><label style="display:flex;gap:10px;align-items:center;margin-top:10px;cursor:pointer"><input type="checkbox" id="back" ${exData(e.id).back?"checked":""} style="width:18px;height:18px;accent-color:var(--acc)"> Образы возвращены</label>${fieldHTML(e.id,{k:"use",l:"Где в жизни ты слишком уверен? Что можно проверить вопросом «я действительно в это верю?»",ph:""})}</div>`},
+ bind:e=>{bindFields(e.id,document);$("#back").onchange=ev=>{exData(e.id).back=ev.target.checked;save();if(ev.target.checked)toast("Отлично")}}
+},
+metaphor:{
+ html:e=>`<div class="step"><div class="sn">Раунд</div><h2>Категория и предмет</h2><p>Впиши категорию: что-то абстрактное или важное для тебя. Потом нажми «Случайный предмет». За пять минут найди как можно больше сходств: чем категория похожа на предмет?</p>
+ ${fieldHTML(e.id,{k:"mcat",l:"Категория (X)",ph:"Моя работа / любовь / обучение"})}
+ <div class="drill-card" id="obj" style="justify-content:center;text-align:center;font-size:26px;color:var(--acc)">${esc(exData(e.id).obj||"предмет появится здесь")}</div>
+ <div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn" id="rollObj">🎲 Случайный предмет</button></div>
+ ${timerHTML(300)}
+ ${fieldHTML(e.id,{k:"msim",l:"Чем X похож на Y",ph:"Работа как зонт: защищает от непогоды, но в солнечный день мешает…"})}
+ ${fieldHTML(e.id,{k:"mhide",l:"Что эта метафора подсвечивает и что прячет",ph:""})}
+ <div style="margin-top:14px"><button class="btn ghost" id="saveRound">Сохранить раунд и начать новый</button></div></div>
+ <div class="step" style="margin-top:16px"><h2>Прошлые раунды</h2><div id="rounds"></div></div>`,
+ bind:e=>{const d=exData(e.id);d.rounds=d.rounds||[];bindTimer(document,300);bindFields(e.id,document);
+  const drawR=()=>{$("#rounds").innerHTML=d.rounds.length?d.rounds.slice().reverse().map(r=>`<div class="journal-entry"><b style="color:var(--text)">${esc(r.c)} → ${esc(r.o)}</b><div class="a">${esc(r.s)}${r.h?"\n\n"+esc(r.h):""}</div></div>`).join(""):`<div class="empty">Здесь будут сохранённые раунды</div>`};
+  $("#rollObj").onclick=()=>{let o;do{o=OBJECTS[Math.floor(Math.random()*OBJECTS.length)]}while(o===d.obj&&OBJECTS.length>1);d.obj=o;save();const el=$("#obj");el.style.opacity=0;setTimeout(()=>{el.textContent=o;el.style.transition="opacity .3s";el.style.opacity=1},150)};
+  $("#saveRound").onclick=()=>{if(!(d.msim||"").trim()){toast("Сначала запиши сходства");return}d.rounds.push({c:d.mcat||"",o:d.obj||"",s:d.msim||"",h:d.mhide||""});d.msim="";d.mhide="";save();render();toast("Раунд сохранён")};drawR()}
+}
+};
+
+/* ================= TRAINER ================= */
+const TABS=[["scopecat","Диапазон / категория"],["forms","Формы смысла"],["modal","Модальные операторы"],["paradox","Парадоксы"],["negative","Перевод в позитив"],["levels","Логические уровни"],["mango","Интонация"]];
+function viewTrainer(tab){
+  tab=TABS.some(t=>t[0]===tab)?tab:"scopecat";
+  document.documentElement.style.setProperty("--acc","var(--c2)");
+  return `<div class="view"><div class="ex-head"><div class="eyebrow"><i></i>Тренажёр</div><h1>Быстрые тренировки</h1><p class="lead">Короткие карточки, чтобы различения из книги стали автоматическими. Лучший результат по каждому тренажёру сохраняется.</p></div>
+  <div class="tabs">${TABS.map(([k,n])=>`<button class="${k===tab?"on":""}" data-tab="${k}">${n}${S.drill[k]!==undefined?` · ${S.drill[k]}`:""}</button>`).join("")}</div><div id="drill" style="max-width:780px"></div></div>`;
+}
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+function best(k,v){if(S.drill[k]===undefined||v>S.drill[k]){S.drill[k]=v;save()}}
+function bindTrainer(tab){
+  tab=TABS.some(t=>t[0]===tab)?tab:"scopecat";
+  $$("[data-tab]").forEach(b=>b.onclick=()=>location.hash="#/trainer/"+b.dataset.tab);
+  const box=$("#drill");
+  if(DRILLS[tab]){const D=DRILLS[tab];let items=shuffle(D.items),i=0,ok=0,answered=false;
+    const draw=()=>{if(i>=items.length){const pct=Math.round(ok/items.length*100);best(tab,pct+"%");box.innerHTML=`<div class="drill"><h2>${ok} из ${items.length}</h2><p>${pct>=90?"Различение работает почти автоматически.":pct>=60?"Хорошая база. Пройди ещё раз, чтобы закрепить.":"Перечитай урок и попробуй снова."}</p><div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn" id="dAgain">Ещё раз</button><a class="btn ghost" href="#/lesson/${D.lesson}">Открыть урок</a></div></div>`;$("#dAgain").onclick=()=>{items=shuffle(D.items);i=0;ok=0;draw()};return}
+      const it=items[i];answered=false;
+      box.innerHTML=`<div class="drill"><div style="display:flex;justify-content:space-between;font-size:13px;color:var(--muted)"><span>${D.title}</span><span>${i+1} / ${items.length} · верно ${ok}</span></div><div class="bar" style="margin-top:10px"><i style="width:${i/items.length*100}%"></i></div><div class="drill-card">${it.t}</div><div class="drill-btns">${D.opts.map(([k,n])=>`<button class="btn ghost" data-a="${k}">${n}</button>`).join("")}</div><div class="drill-fb" id="fb"></div></div>`;
+      $$("[data-a]",box).forEach(b=>b.onclick=()=>{if(answered){return}answered=true;const right=b.dataset.a===it.a;if(right)ok++;
+        b.style.borderColor=right?"var(--c1)":"var(--c4)";if(!right)$(`[data-a="${it.a}"]`,box).style.borderColor="var(--c1)";
+        $("#fb").innerHTML=`<span style="color:${right?"var(--c1)":"var(--c4)"};font-weight:600">${right?"Верно.":"Не совсем."}</span> <span style="color:var(--text2)">${it.e}</span> <button class="btn sm" id="dNext" style="margin-left:8px">Дальше →</button>`;$("#dNext").onclick=()=>{i++;draw()};$("#dNext").focus()})};
+    draw();return}
+  if(tab==="negative"){let items=shuffle(NEGATIVES),i=0;const draw=()=>{const it=items[i%items.length];
+    box.innerHTML=`<div class="drill"><div style="display:flex;justify-content:space-between;font-size:13px;color:var(--muted)"><span>Перевод в позитив</span><span>${i%items.length+1} / ${items.length}</span></div><p style="margin-top:10px">Перепиши фразу так, чтобы в ней было описано желаемое действие или состояние, без «не» и без «но».</p><div class="drill-card">${it.t}</div><textarea id="negIn" placeholder="Твой вариант…" style="min-height:80px"></textarea><div id="negChk" class="drill-fb"></div><div style="display:flex;gap:10px;margin-top:12px;flex-wrap:wrap"><button class="btn" id="negShow">Проверить</button><button class="btn ghost" id="negNext">Следующая →</button></div></div>`;
+    $("#negShow").onclick=()=>{const v=$("#negIn").value.trim();const bad=/(^|\s)(не|ни|нет|но|никогда)(\s|$|[,.!?])/i.test(v);$("#negChk").innerHTML=(v?(bad?`<span style="color:var(--c2);font-weight:600">В твоём варианте осталось отрицание или «но». </span>`:`<span style="color:var(--c1);font-weight:600">Без отрицаний, отлично. </span>`):"")+`<span style="color:var(--text2)">Один из вариантов: <q>${it.s}</q></span>`};
+    $("#negNext").onclick=()=>{i++;draw()}};draw();return}
+  if(tab==="levels"){let sets=shuffle(LEVEL_SETS),si=0,picked=[],score=0,done=0;const draw=()=>{if(si>=sets.length){best("levels",`${score}/${sets.length}`);box.innerHTML=`<div class="drill"><h2>${score} из ${sets.length} лестниц без ошибок</h2><p>Тест на уровень всегда один: «X является разновидностью Y?»</p><button class="btn" id="lvA">Ещё раз</button></div>`;$("#lvA").onclick=()=>{sets=shuffle(LEVEL_SETS);si=0;score=0;picked=[];draw()};return}
+    const set=sets[si],sh=box._sh&&box._si===si?box._sh:(box._sh=shuffle(set),box._si=si,box._sh);
+    box.innerHTML=`<div class="drill"><div style="display:flex;justify-content:space-between;font-size:13px;color:var(--muted)"><span>Логические уровни</span><span>${si+1} / ${sets.length}</span></div><p style="margin-top:10px">Нажимай по порядку: от самого общего к самому конкретному.</p><div class="order-list">${sh.map(x=>{const p=picked.indexOf(x);return `<button class="${p>=0?"picked":""}" data-x="${esc(x)}"><span class="pos">${p>=0?p+1:"·"}</span>${esc(x)}</button>`}).join("")}</div><div class="drill-fb" id="lvFb"></div></div>`;
+    $$("[data-x]",box).forEach(b=>b.onclick=()=>{const x=b.dataset.x;if(picked.includes(x)){picked=picked.filter(y=>y!==x);draw();return}picked.push(x);
+      if(picked.length===set.length){const right=picked.every((v,k)=>v===set[k]);if(right)score++;draw();$("#lvFb").innerHTML=`<span style="color:${right?"var(--c1)":"var(--c4)"};font-weight:600">${right?"Верно.":"Правильный порядок:"}</span> <span style="color:var(--text2)">${right?"":set.join(" → ")}</span> <button class="btn sm" id="lvN" style="margin-left:8px">Дальше →</button>`;$("#lvN").onclick=()=>{si++;picked=[];draw()}}else draw()})};draw();return}
+  if(tab==="mango"){let on=-1;const draw=()=>{box.innerHTML=`<div class="drill"><h2 style="font-size:20px">Где ударение, там и подтекст</h2><p>Нажми на слово, чтобы выделить его голосом. Под фразой появится то, что слушатель достроит сам.</p><div class="mango">${MANGO.words.map((w,i)=>`<button class="${i===on?"on":""}" data-w="${i}">${w}</button>`).join("")}</div><div class="drill-card" style="font-size:17px;font-weight:500;color:var(--text2)">${on>=0?MANGO.hint[on]:"Выбери слово"}</div><p style="font-size:14px;margin:0">Это один из шести приёмов «модели мира». Попробуй так же со своей фразой: <q>Ты опять не позвонил</q>.</p></div>`;$$("[data-w]",box).forEach(b=>b.onclick=()=>{on=+b.dataset.w;draw()})};draw();return}
+}
+
+/* ================= JOURNAL ================= */
+function exEntries(){const out=[];
+  EXERCISES.forEach(e=>{const d=S.ex[e.id];if(d)out.push({e,d,t:d._t||0,cur:1})});
+  (S.arch||[]).forEach(a=>{const e=exById(a.id);if(e)out.push({e,d:a.d,t:a.t,cur:0})});
+  return out.sort((a,b)=>b.t-a.t)}
+function entryPairs(e,d){const res=[];
+  if(e.steps) e.steps.forEach(s=>s.f.forEach(f=>{if(d[f.k]&&String(d[f.k]).trim())res.push([s.t+" · "+f.l,d[f.k]])}));
+  else Object.entries(d).forEach(([k,v])=>{if(k.startsWith("_")||k==="oA"||k==="oB")return;if(Array.isArray(v)){if(v.length)res.push([k==="list"?"Критерии":k==="rounds"?"Раунды":k,v.map(x=>typeof x==="object"?(x.t||((x.c||"")+" → "+(x.o||"")+": "+(x.s||""))):x).join("\n")])}else if(typeof v==="string"&&v.trim())res.push([k,v])});
+  if(d.oA&&d.oA.length)res.push(["Порядок: работа",d.oA.join(" → ")]);if(d.oB&&d.oB.length)res.push(["Порядок: дом",d.oB.join(" → ")]);
+  return res}
+function viewJournal(){
+  document.documentElement.style.setProperty("--acc","var(--c6)");
+  const E=exEntries().filter(x=>entryPairs(x.e,x.d).length);
+  const doneN=LESSONS.filter(l=>S.done[l.id]).length;
+  return `<div class="view"><div class="ex-head"><div class="eyebrow"><i></i>Мой журнал</div><h1>Записи и прогресс</h1><p class="lead">Всё, что ты написал в упражнениях. Данные хранятся только в этом браузере, поэтому иногда скачивай копию.</p></div>
+  <div class="howto" style="grid-template-columns:repeat(3,1fr);margin-bottom:24px"><div class="plate"><b style="font-size:28px">${doneN}/${LESSONS.length}</b><span>уроков пройдено</span></div><div class="plate"><b style="font-size:28px">${E.length}</b><span>записей в упражнениях</span></div><div class="plate"><b style="font-size:28px">${Object.keys(S.drill).length}/${TABS.length-2}</b><span>тренажёров с результатом</span></div></div>
+  <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:24px"><button class="btn" id="dl">Скачать журнал (.md)</button><button class="btn ghost" id="wipe">Стереть всё</button></div>
+  ${E.length?E.map(x=>`<div class="card journal-entry"><h3><span>${x.e.title}</span><span class="chip">${x.t?new Date(x.t).toLocaleDateString("ru-RU",{day:"numeric",month:"short"}):""}${x.cur?" · текущая":" · архив"}</span></h3>${entryPairs(x.e,x.d).map(([k,v])=>`<div class="a"><b>${esc(k)}</b>${esc(v)}</div>`).join("")}${x.cur?`<a class="btn ghost sm" href="#/ex/${x.e.id}">Открыть упражнение</a>`:""}</div>`).join(""):`<div class="empty">Пока записей нет. Начни с упражнения <a href="#/ex/scope-script" style="color:var(--acc)">«Сценарий диапазона»</a>.</div>`}</div>`;
+}
+function bindJournal(){
+  $("#dl").onclick=()=>{let md=`# Журнал практики · «Шесть слепых слонов»\n\nУроков пройдено: ${LESSONS.filter(l=>S.done[l.id]).length} из ${LESSONS.length}\n\n`;
+    exEntries().forEach(x=>{const P=entryPairs(x.e,x.d);if(!P.length)return;md+=`## ${x.e.title}${x.t?" ("+new Date(x.t).toLocaleString("ru-RU")+")":""}\n\n`;P.forEach(([k,v])=>md+=`**${k}**\n\n${v}\n\n`)});
+    const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([md],{type:"text/markdown"}));a.download="zhurnal-slepye-slony.md";a.click()};
+  $("#wipe").onclick=()=>{if(confirm("Стереть весь прогресс и все записи? Это нельзя отменить.")){localStorage.removeItem(KEY);S={done:{},quiz:{},ex:{},step:{},drill:{}};save();render();renderNav();toast("Всё стёрто")}};
+}
+
+/* ================= GLOSSARY ================= */
+function viewGlossary(){
+  document.documentElement.style.setProperty("--acc","var(--c4)");
+  return `<div class="view"><div class="ex-head"><div class="eyebrow"><i></i>Словарь</div><h1>Термины книги</h1><p class="lead">Короткие определения. Каждый термин ведёт к уроку, где он разобран подробно.</p></div>
+  <input type="text" id="gq" placeholder="Поиск по терминам…" style="max-width:420px;margin-bottom:20px"><div class="gloss" id="gl"></div></div>`;
+}
+function bindGlossary(){const draw=q=>{q=(q||"").toLowerCase();$("#gl").innerHTML=GLOSSARY.filter(g=>!q||g[0].toLowerCase().includes(q)||g[1].toLowerCase().includes(q)).map(([t,d,l])=>{const L=lessonById(l),p=partOf(L);return `<div class="plate" style="border-left:3px solid ${p.color}"><b>${t}</b><span>${d}</span><a href="#/lesson/${l}" style="color:${p.color}">Урок ${LESSONS.indexOf(L)+1}: ${L.title} →</a></div>`}).join("")||`<div class="empty">Ничего не найдено</div>`};$("#gq").oninput=e=>draw(e.target.value);draw()}
+
+/* ================= ROUTER ================= */
+function render(){
+  clearInterval(TIMER); if("speechSynthesis" in window) speechSynthesis.cancel();
+  const h=location.hash.replace(/^#\/?/,"").split("/");
+  const v=$("#view");
+  if(h[0]==="lesson"){v.innerHTML=viewLesson(h[1]);bindLesson(h[1])}
+  else if(h[0]==="practice"){v.innerHTML=viewPractice()}
+  else if(h[0]==="ex"){v.innerHTML=viewEx(h[1]);bindEx(h[1])}
+  else if(h[0]==="trainer"){v.innerHTML=viewTrainer(h[1]);bindTrainer(h[1])}
+  else if(h[0]==="journal"){v.innerHTML=viewJournal();bindJournal()}
+  else if(h[0]==="glossary"){v.innerHTML=viewGlossary();bindGlossary()}
+  else {v.innerHTML=viewHome()}
+  renderNav();
+  $("#side").classList.remove("open");$("#overlay").classList.remove("show");
+}
+window.addEventListener("hashchange",()=>{render();window.scrollTo(0,0)});
+$("#menuBtn").onclick=()=>{$("#side").classList.add("open");$("#overlay").classList.add("show")};
+$("#overlay").onclick=()=>{$("#side").classList.remove("open");$("#overlay").classList.remove("show")};
+render();
+</script>
+</body>
+</html>
